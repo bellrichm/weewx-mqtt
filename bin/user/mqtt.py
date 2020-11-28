@@ -316,7 +316,8 @@ class MQTT(weewx.restx.StdRESTbase):
         mqtt_dict['timeout'] = to_int(search_up(site_dict, 'timeout', 60))
         mqtt_dict['max_tries'] = to_int(search_up(site_dict, 'max_tries', 3))
         mqtt_dict['retry_wait'] = to_int(search_up(site_dict, 'retry_wait', 5))
-
+        
+        single_thread = to_bool(site_dict.get('single_thread', False))
         augment_record = False
         archive_binding = False
         loop_binding = False
@@ -337,17 +338,26 @@ class MQTT(weewx.restx.StdRESTbase):
                 _manager_dict = weewx.manager.get_manager_dict_from_config(
                     config_dict, 'wx_binding')
                 mqtt_dict['manager_dict'] = _manager_dict
+                self.dbmanager = weewx.manager.open_manager(_manager_dict)
         except weewx.UnknownBinding:
             pass
 
-        self.archive_queue = Queue.Queue()
-        self.archive_thread = MQTTThread(self.archive_queue, **mqtt_dict)
-        self.archive_thread.start()
+        if single_thread:
+            self.archive_queue = None
+            if archive_binding:
+                self.bind(weewx.NEW_ARCHIVE_RECORD, self.new_archive_record_single_thread)
+            if loop_binding:
+                self.bind(weewx.NEW_LOOP_PACKET, self.new_loop_packet_single_thread)
+        else:
+            self.archive_queue = Queue.Queue()
+            if archive_binding:
+                self.bind(weewx.NEW_ARCHIVE_RECORD, self.new_archive_record)
+            if loop_binding:
+                self.bind(weewx.NEW_LOOP_PACKET, self.new_loop_packet)
 
-        if archive_binding:
-            self.bind(weewx.NEW_ARCHIVE_RECORD, self.new_archive_record)
-        if loop_binding:
-            self.bind(weewx.NEW_LOOP_PACKET, self.new_loop_packet)
+        self.archive_thread = MQTTThread(self.archive_queue, **mqtt_dict)
+        if not single_thread:
+            self.archive_thread.start()
 
         if 'topic' in site_dict:
             loginf("topic is %s" % site_dict['topic'])
@@ -361,6 +371,12 @@ class MQTT(weewx.restx.StdRESTbase):
 
     def new_loop_packet(self, event):
         self.archive_queue.put(event.packet)
+
+    def new_archive_record_single_thread(self, event):
+        self.archive_thread.process_record(event.record, self.dbmanager)
+
+    def new_loop_packet_single_thread(self, event):
+        self.archive_thread.process_record(event.packet, self.dbmanager)
 
     def init_topic_dict(self, topic, site_dict, topic_dict, aggregation=None):
         topic_dict['skip_upload'] = False
