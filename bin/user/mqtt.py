@@ -579,14 +579,14 @@ class MQTTThread(weewx.restx.RESTThread):
                     (res, mid) = mc.publish(topic, json.dumps(data),
                                             retain=retain, qos=qos)
                     if res != mqtt.MQTT_ERR_SUCCESS:
-                        logerr("publish failed for %s: %s" % (tpc, res))
+                        logerr("publish failed for %s: %s" % (topic, res))
                 if aggregation.find('individual') >= 0:
                     for key in data:
                         tpc = topic + '/' + key
                         (res, mid) = mc.publish(tpc, data[key],
                                                 retain=retain)
                         if res != mqtt.MQTT_ERR_SUCCESS:
-                            logerr("publish failed for %s: %s" % (tpc, res))
+                            logerr("publish failed for %s: %s" % (topic, res))
                 if not self.persist_connection:
                     self.disconnect(mc)
                 return
