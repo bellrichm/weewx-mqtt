@@ -570,10 +570,10 @@ class MQTTThread(weewx.restx.RESTThread):
                 break       
             if 'interval' in record:
                 if 'archive' in self.topics[topic]['binding']:
-                    self.publish_data(mc, data, topic)
+                    self.prep_data(mc, data, topic)
             else:
                 if 'loop' in self.topics[topic]['binding']:
-                    self.publish_data(mc, data, topic)
+                    self.prep_data(mc, data, topic)
         
         if not self.persist_connection:
             self.disconnect(mc)
@@ -591,7 +591,7 @@ class MQTTThread(weewx.restx.RESTThread):
                                 record)
         return data
         
-    def publish_data(self, mc, data, topic):
+    def prep_data(self, mc, data, topic):
         if self.topics[topic]['aggregation'].find('aggregate') >= 0:
             self.publish_aggregate_data(mc,
                                         data,
@@ -599,11 +599,9 @@ class MQTTThread(weewx.restx.RESTThread):
                                         self.topics[topic]['qos'],
                                         self.topics[topic]['retain'])
         if self.topics[topic]['aggregation'].find('individual') >= 0:
-            self.publish_individual_data(mc,
-                                        data,
-                                        topic,
-                                        self.topics[topic]['qos'],
-                                        self.topics[topic]['retain'])
+            for key in data:
+                tpc = topic + '/' + key
+                self.publish_aggregate_data(mc, tpc, data[key], retain=self.topics[topic]['retain'], qos=self.topics[topic]['qos'])
 
     def publish_aggregate_data(self, mc, data, topic, qos, retain):
         import socket
@@ -613,23 +611,6 @@ class MQTTThread(weewx.restx.RESTThread):
                                         retain=retain, qos=qos)
                 if res != mqtt.MQTT_ERR_SUCCESS:
                     logerr("publish failed for %s: %s" % (topic, res))
-                return
-            except (socket.error, socket.timeout, socket.herror) as e:
-                logdbg("Failed upload attempt %d: %s" % (_count+1, e))
-            time.sleep(self.retry_wait)
-        else:
-            raise weewx.restx.FailedPost("Failed upload after %d tries" %
-                                         (self.max_tries,))
-    def publish_individual_data(self, mc, data, topic, qos, retain):
-        import socket
-        for _count in range(self.max_tries):
-            try:
-                for key in data:
-                    tpc = topic + '/' + key
-                    (res, mid) = mc.publish(tpc, data[key],
-                                          retain=retain, qos=qos)
-                    if res != mqtt.MQTT_ERR_SUCCESS:
-                        logerr("publish failed for %s: %s" % (topic, res))
                 return
             except (socket.error, socket.timeout, socket.herror) as e:
                 logdbg("Failed upload attempt %d: %s" % (_count+1, e))
