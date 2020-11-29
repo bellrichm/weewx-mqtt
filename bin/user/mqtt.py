@@ -561,6 +561,7 @@ class MQTTThread(weewx.restx.RESTThread):
             mc = self.mc
         else:
             mc = self.connect()
+            mc.loop_start()
         for topic in self.topics:
             data = self.update_record(topic, record, dbmanager)
             if weewx.debug >= 2:
@@ -609,12 +610,20 @@ class MQTTThread(weewx.restx.RESTThread):
             try:
                 (res, mid) = mc.publish(topic, json.dumps(data),
                                         retain=retain, qos=qos)
-                if res != mqtt.MQTT_ERR_SUCCESS:
-                    logerr("publish failed for %s: %s" % (topic, res))
-                return
+                if res == mqtt.MQTT_ERR_SUCCESS:
+                    return
+                elif res == mqtt.MQTT_ERR_NO_CONN:
+                    logerr("Publish failed for %s: %s. Attempting to reconnect." % (topic, res))
+                    mc = self.connect()
+                    mc.loop_start()
+                    if self.persist_connection:
+                        self.mc = mc
+                else:
+                    logerr("Publish failed for %s: %s. Skipping." % (topic, res))
+                    return
             except (socket.error, socket.timeout, socket.herror) as e:
-                logdbg("Failed upload attempt %d: %s" % (_count+1, e))
-            time.sleep(self.retry_wait)
+                logdbg("Failed publish attempt %d: %s" % (_count+1, e))
+                time.sleep(self.retry_wait)
         else:
             raise weewx.restx.FailedPost("Failed upload after %d tries" %
                                          (self.max_tries,))
