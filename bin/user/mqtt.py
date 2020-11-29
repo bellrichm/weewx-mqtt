@@ -292,21 +292,21 @@ class MQTT(weewx.restx.StdRESTbase):
                 site_dict['topics'] = {}
                 site_dict['topics'][topic] = {}
                 topics[topic] = {}
-                self.init_topic_dict(topic, site_dict, topics[topic], aggregation='aggregate')
+                self._init_topic_dict(topic, site_dict, topics[topic], aggregation='aggregate')
 
             if aggregation.find('individual') >= 0:
                 topic = site_dict.get('topic', 'weather')
                 site_dict['topics'] = {}
                 site_dict['topics'][topic] = {}
                 topics[topic] = {}
-                self.init_topic_dict(topic, site_dict, topics[topic], aggregation='individual')
+                self._init_topic_dict(topic, site_dict, topics[topic], aggregation='individual')
         else:
             if site_dict.get('topic', None) is not None:
                 loginf("'topics' configuration option found, ignoring 'topic' option")
             topics = {}
             for topic in topic_configs:
                 topics[topic] = {}
-                self.init_topic_dict(topic, site_dict, topics[topic])
+                self._init_topic_dict(topic, site_dict, topics[topic])
 
         mqtt_dict = {}
         mqtt_dict['server_url'] = site_dict['server_url']
@@ -381,24 +381,41 @@ class MQTT(weewx.restx.StdRESTbase):
     def new_loop_packet_single_thread(self, event):
         self.archive_thread.process_record(event.packet, self.dbmanager)
 
-    def init_topic_dict(self, topic, site_dict, topic_dict, aggregation=None):
+    def _init_topic_dict(self, topic, site_dict, topic_dict, aggregation=None):
         topic_dict['skip_upload'] = False
-        topic_dict['binding'] = site_dict['topics'][topic].get('binding', site_dict.get('binding', 'archive'))
+        topic_dict['binding'] = site_dict['topics'][topic].get('binding',
+                                                               site_dict.get('binding', 'archive'))
         if aggregation is None:
-            topic_dict['aggregation'] = site_dict['topics'][topic].get('aggregation', site_dict.get('aggregation', 'individual,aggregate'))
+            topic_dict['aggregation'] = site_dict['topics'][topic] \
+                                            .get('aggregation',
+                                                 site_dict.get('aggregation',
+                                                               'individual,aggregate'))
         else:
             topic_dict['aggregation'] = aggregation
-        topic_dict['append_units_label'] = to_bool(site_dict['topics'][topic].get('append_units_label', site_dict.get('append_units_label', True)))
-        topic_dict['augment_record'] = to_bool(site_dict['topics'][topic].get('augment_record', site_dict.get('augment_record', True)))
+        topic_dict['append_units_label'] = to_bool(site_dict['topics'][topic] \
+                                                        .get('append_units_label',
+                                                             site_dict.get('append_units_label',
+                                                                           True)))
+        topic_dict['augment_record'] = to_bool(site_dict['topics'][topic] \
+                                                    .get('augment_record',
+                                                         site_dict.get('augment_record',
+                                                                       True)))
         usn = site_dict['topics'][topic].get('unit_system', site_dict.get('unit_system', None))
         if  usn is not None:
             topic_dict['unit_system'] = weewx.units.unit_constants[usn]
             loginf("for %s: desired unit system is %s" % (topic, usn))
 
-        topic_dict['upload_all'] = True if site_dict['topics'][topic].get('obs_to_upload', site_dict.get('obs_to_upload', 'all')).lower() == 'all' else False
-        topic_dict['retain'] = to_bool(site_dict['topics'][topic].get('retain', site_dict.get('retain', False)))
+        topic_dict['upload_all'] = True if site_dict['topics'][topic] \
+                                            .get('obs_to_upload',
+                                                 site_dict.get('obs_to_upload',
+                                                               'all')).lower() == 'all'\
+                                   else False
+        topic_dict['retain'] = to_bool(site_dict['topics'][topic].get('retain',
+                                                                      site_dict.get('retain',
+                                                                                    False)))
         topic_dict['qos'] = to_int(site_dict['topics'][topic].get('qos', site_dict.get('qos', 0)))
-        topic_dict['inputs'] = dict(site_dict['topics'][topic].get('inputs', site_dict).get('inputs', {}))
+        topic_dict['inputs'] = dict(site_dict['topics'][topic].get('inputs',
+                                                                   site_dict).get('inputs', {}))
         topic_dict['templates'] = dict()
 
         loginf("for %s binding to %s" % (topic, topic_dict['binding']))
@@ -500,7 +517,7 @@ class MQTTThread(weewx.restx.RESTThread):
         if persist_connection:
             for _count in range(self.max_tries):
                 try:
-                    self.mc = self.connect()
+                    self.mc = self._connect()
                     self.mc.loop_start()
                     break
                 except (ConnectionRefusedError) as e:
@@ -563,7 +580,7 @@ class MQTTThread(weewx.restx.RESTThread):
 
             for _count in range(self.max_tries):
                 try:
-                    mc = self.connect()
+                    mc = self._connect()
                     mc.loop_start()
                     break
                 except (ConnectionRefusedError) as e:
@@ -574,48 +591,53 @@ class MQTTThread(weewx.restx.RESTThread):
                 return
 
         for topic in self.topics:
-            data = self.update_record(topic, record, dbmanager)
+            data = self._update_record(topic, record, dbmanager)
             if weewx.debug >= 2:
                 logdbg("data: %s" % data)
             if self.topics[topic]['skip_upload']:
                 loginf("skipping upload")
-                break       
+                break
             if 'interval' in record:
                 if 'archive' in self.topics[topic]['binding']:
-                    self.prep_data(mc, data, topic)
+                    self._prep_data(mc, data, topic)
             else:
                 if 'loop' in self.topics[topic]['binding']:
-                    self.prep_data(mc, data, topic)
-        
-        if not self.persist_connection:
-            self.disconnect(mc)
+                    self._prep_data(mc, data, topic)
 
-    def update_record(self, topic, record, dbmanager):
+        if not self.persist_connection:
+            self._disconnect(mc)
+
+    def _update_record(self, topic, record, dbmanager):
         updated_record = dict(record)
         if self.topics[topic]['augment_record'] and dbmanager is not None:
             updated_record = self.get_record(updated_record, dbmanager)
         if self.topics[topic]['unit_system'] is not None:
-            updated_record = weewx.units.to_std_system(updated_record, self.topics[topic]['unit_system'])
+            updated_record = weewx.units.to_std_system(updated_record,
+                                                       self.topics[topic]['unit_system'])
         data = self.filter_data(self.topics[topic]['upload_all'],
                                 self.topics[topic]['templates'],
                                 self.topics[topic]['inputs'],
                                 self.topics[topic]['append_units_label'],
                                 record)
         return data
-        
-    def prep_data(self, mc, data, topic):
+
+    def _prep_data(self, mc, data, topic):
         if self.topics[topic]['aggregation'].find('aggregate') >= 0:
-            self.publish_data(mc,
-                                        data,
-                                        topic,
-                                        self.topics[topic]['qos'],
-                                        self.topics[topic]['retain'])
+            self._publish_data(mc,
+                               data,
+                               topic,
+                               self.topics[topic]['qos'],
+                               self.topics[topic]['retain'])
         if self.topics[topic]['aggregation'].find('individual') >= 0:
             for key in data:
                 tpc = topic + '/' + key
-                self.publish_data(mc, tpc, data[key], retain=self.topics[topic]['retain'], qos=self.topics[topic]['qos'])
+                self._publish_data(mc,
+                                   tpc,
+                                   data[key],
+                                   retain=self.topics[topic]['retain'],
+                                   qos=self.topics[topic]['qos'])
 
-    def publish_data(self, mc, data, topic, qos, retain):
+    def _publish_data(self, mc, data, topic, qos, retain):
         import socket
         for _count in range(self.max_tries):
             try:
@@ -625,7 +647,7 @@ class MQTTThread(weewx.restx.RESTThread):
                     return
                 elif res == mqtt.MQTT_ERR_NO_CONN:
                     logerr("Publish failed for %s: %s. Attempting to reconnect." % (topic, res))
-                    mc = self.connect()
+                    mc = self._connect()
                     mc.loop_start()
                     if self.persist_connection:
                         self.mc = mc
@@ -639,7 +661,7 @@ class MQTTThread(weewx.restx.RESTThread):
             raise weewx.restx.FailedPost("Failed upload after %d tries" %
                                          (self.max_tries,))
 
-    def connect(self):
+    def _connect(self):
         url = urlparse(self.server_url)
         client_id = self.client_id
         if not client_id:
@@ -654,6 +676,6 @@ class MQTTThread(weewx.restx.RESTThread):
         mc.connect(url.hostname, url.port)
         return mc
 
-    def disconnect(self, mc):
+    def _disconnect(self, mc):
         mc.loop_stop()
         mc.disconnect()
