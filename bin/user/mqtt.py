@@ -498,7 +498,16 @@ class MQTTThread(weewx.restx.RESTThread):
         self.topics = topics
         self.mc = None
         if persist_connection:
-            self.mc = self.connect()
+            for _count in range(self.max_tries):
+                try:
+                    self.mc = self.connect()
+                    self.mc.loop_start()
+                    break
+                except (ConnectionRefusedError) as e:
+                    logdbg("Failed connection %d: %s" % (_count+1, e))
+                time.sleep(self.retry_wait)
+            else:
+                raise ConnectionError
 
     def filter_data(self, upload_all, templates, inputs, append_units_label, record):
         # if uploading everything, we must check the upload variables list
@@ -599,7 +608,6 @@ class MQTTThread(weewx.restx.RESTThread):
     def publish_aggregate_data(self, mc, data, topic, qos, retain):
         import socket
         for _count in range(self.max_tries):
-
             try:
                 (res, mid) = mc.publish(topic, json.dumps(data),
                                         retain=retain, qos=qos)
@@ -642,16 +650,8 @@ class MQTTThread(weewx.restx.RESTThread):
         # if we have TLS opts configure TLS on our broker connection
         if len(self.tls_dict) > 0:
             mc.tls_set(**self.tls_dict)
-        for _count in range(self.max_tries):
-            try:
-                mc.connect(url.hostname, url.port)
-                mc.loop_start()
-                return mc
-            except (ConnectionRefusedError) as e:
-                logdbg("Failed connection %d: %s" % (_count+1, e))
-            time.sleep(self.retry_wait)
-        else:
-            raise ConnectionError
+        mc.connect(url.hostname, url.port)
+        return mc
 
     def disconnect(self, mc):
         mc.loop_stop()
