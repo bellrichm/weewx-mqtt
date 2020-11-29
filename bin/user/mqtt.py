@@ -274,6 +274,9 @@ class MQTT(weewx.restx.StdRESTbase):
             logerr("Data will not be uploaded: Missing option %s" % e)
             return
 
+        if not to_bool(site_dict.get('enable', True)):
+            return
+
         # for backward compatibility: 'units' is now 'unit_system'
         _compat(site_dict, 'units', 'unit_system')
 
