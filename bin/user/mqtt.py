@@ -560,8 +560,19 @@ class MQTTThread(weewx.restx.RESTThread):
         if self.persist_connection:
             mc = self.mc
         else:
-            mc = self.connect()
-            mc.loop_start()
+
+            for _count in range(self.max_tries):
+                try:
+                    mc = self.connect()
+                    mc.loop_start()
+                    break
+                except (ConnectionRefusedError) as e:
+                    logdbg("Failed connection %d: %s" % (_count+1, e))
+                time.sleep(self.retry_wait)
+            else:
+                logerr("Could not connect, skipping record: %s" % record)
+                return
+
         for topic in self.topics:
             data = self.update_record(topic, record, dbmanager)
             if weewx.debug >= 2:
