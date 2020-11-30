@@ -309,6 +309,8 @@ class MQTT(weewx.restx.StdRESTbase):
         except weewx.UnknownBinding:
             pass
 
+        single_thread = to_bool(site_dict.get('single_thread', False))
+
         if 'unit_system' in site_dict:
             del site_dict['unit_system']
         if 'append_units_label' in site_dict:
@@ -322,7 +324,6 @@ class MQTT(weewx.restx.StdRESTbase):
         if 'retain' in site_dict:
             del site_dict['retain']
 
-        single_thread = to_bool(site_dict.get('single_thread', False))
         if single_thread:
             self.archive_queue = None
             if archive_binding:
