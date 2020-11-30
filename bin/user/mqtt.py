@@ -381,7 +381,8 @@ class MQTT(weewx.restx.StdRESTbase):
     def new_loop_packet_single_thread(self, event):
         self.archive_thread.process_record(event.packet, self.dbmanager)
 
-    def _init_topic_dict(self, topic, site_dict, topic_dict, aggregation=None):
+    @staticmethod
+    def _init_topic_dict(topic, site_dict, topic_dict, aggregation=None):
         topic_dict['skip_upload'] = False
         topic_dict['binding'] = site_dict['topics'][topic].get('binding',
                                                                site_dict.get('binding', 'archive'))
@@ -405,11 +406,10 @@ class MQTT(weewx.restx.StdRESTbase):
             topic_dict['unit_system'] = weewx.units.unit_constants[usn]
             loginf("for %s: desired unit system is %s" % (topic, usn))
 
-        topic_dict['upload_all'] = True if site_dict['topics'][topic] \
+        topic_dict['upload_all'] = bool(site_dict['topics'][topic] \
                                             .get('obs_to_upload',
                                                  site_dict.get('obs_to_upload',
-                                                               'all')).lower() == 'all'\
-                                   else False
+                                                               'all')).lower() == 'all')
         topic_dict['retain'] = to_bool(site_dict['topics'][topic].get('retain',
                                                                       site_dict.get('retain',
                                                                                     False)))
@@ -527,7 +527,8 @@ class MQTTThread(weewx.restx.RESTThread):
             else:
                 raise ConnectionError
 
-    def filter_data(self, upload_all, templates, inputs, append_units_label, record):
+    @staticmethod
+    def filter_data(upload_all, templates, inputs, append_units_label, record):
         # pylint: disable=invalid-name
         # if uploading everything, we must check the upload variables list
         # every time since variables may come and go in a record.  use the
@@ -645,8 +646,8 @@ class MQTTThread(weewx.restx.RESTThread):
                 (res, mid) = client.publish(topic, json.dumps(data), # pylint: disable=unused-variable
                                             retain=retain, qos=qos)
                 if res == mqtt.MQTT_ERR_SUCCESS:
-                    return
-                elif res == mqtt.MQTT_ERR_NO_CONN:
+                    break
+                if res == mqtt.MQTT_ERR_NO_CONN:
                     logerr("Publish failed for %s: %s. Attempting to reconnect." % (topic, res))
                     client = self._connect()
                     client.loop_start()
@@ -654,7 +655,7 @@ class MQTTThread(weewx.restx.RESTThread):
                         self.client = client
                 else:
                     logerr("Publish failed for %s: %s. Skipping." % (topic, res))
-                    return
+                    break
             except (socket.error, socket.timeout, socket.herror) as exception:
                 logdbg("Failed publish attempt %d: %s" % (_count+1, exception))
                 time.sleep(self.retry_wait)
@@ -677,6 +678,7 @@ class MQTTThread(weewx.restx.RESTThread):
         client.connect(url.hostname, url.port)
         return client
 
-    def _disconnect(self, client):
+    @staticmethod
+    def _disconnect(client):
         client.loop_stop()
         client.disconnect()
