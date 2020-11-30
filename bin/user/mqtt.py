@@ -274,6 +274,9 @@ class MQTT(weewx.restx.StdRESTbase):
         if site_dict is None:
             return
 
+        # get_site_dict does not get extra sections
+        site_dict['topics'] = config_dict['StdRESTful']['MQTT'].get('topics', {})
+
         # for backward compatibility: 'units' is now 'unit_system'
         _compat(site_dict, 'units', 'unit_system')
 
@@ -310,6 +313,14 @@ class MQTT(weewx.restx.StdRESTbase):
             del site_dict['unit_system']
         if 'append_units_label' in site_dict:
             del site_dict['append_units_label']
+        if 'single_thread' in site_dict:
+            del site_dict['single_thread']
+        if 'topic' in site_dict:
+            del site_dict['topic']
+        if 'qos' in site_dict:
+            del site_dict['qos']
+        if 'retain' in site_dict:
+            del site_dict['retain']
 
         single_thread = to_bool(site_dict.get('single_thread', False))
         if single_thread:
