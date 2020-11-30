@@ -1,6 +1,6 @@
 # Copyright 2013-2020 Matthew Wall
 # Distributed under the terms of the GNU Public License (GPLv3)
-# pylint: disable=import-outside-toplevel, anomalous-backslash-in-string, fixme
+# pylint: disable=import-outside-toplevel, anomalous-backslash-in-string, fixme, useless-object-inheritance
 """
 Upload data to MQTT server
 
@@ -236,8 +236,7 @@ def _get_template(obs_key, overrides, append_units_label, unit_system):
 
 
 class MQTT(weewx.restx.StdRESTbase):
-    def __init__(self, engine, config_dict):
-        """This service recognizes standard restful options plus the following:
+    """ This service recognizes standard restful options plus the following:
 
         Required parameters:
 
@@ -269,7 +268,8 @@ class MQTT(weewx.restx.StdRESTbase):
         tls: dictionary of TLS parameters used by the Paho client to establish
         a secure connection with the broker.
         Default is None
-        """
+    """
+    def __init__(self, engine, config_dict):
         super(MQTT, self).__init__(engine, config_dict)
         loginf("service version is %s" % VERSION)
 
@@ -370,15 +370,19 @@ class MQTT(weewx.restx.StdRESTbase):
             loginf("network encryption/authentication will be attempted")
 
     def new_archive_record(self, event):
+        """ Queue up the archive record for publishing in a different thread. """
         self.archive_queue.put(event.record)
 
     def new_loop_packet(self, event):
+        """ Queue up the loop packet for publishing in a different thread. """
         self.archive_queue.put(event.packet)
 
     def new_archive_record_single_thread(self, event):
+        """ Publish the archive record. """
         self.archive_thread.process_record(event.record, self.dbmanager)
 
     def new_loop_packet_single_thread(self, event):
+        """ Publish the loop packet. """
         self.archive_thread.process_record(event.packet, self.dbmanager)
 
     @staticmethod
@@ -421,6 +425,7 @@ class MQTT(weewx.restx.StdRESTbase):
         loginf("for %s binding to %s" % (topic, topic_dict['binding']))
 
 class TLSDefaults(object):
+    """ Manage the TLS defaults. """
     # pylint: disable=invalid-name
     def __init__(self):
         import ssl
@@ -477,7 +482,7 @@ class TLSDefaults(object):
 
 
 class MQTTThread(weewx.restx.RESTThread):
-
+    """ Publish data to MQTT. """
     def __init__(self, queue, server_url, topics, persist_connection,
                  client_id='',
                  manager_dict=None, tls=None,
@@ -527,8 +532,12 @@ class MQTTThread(weewx.restx.RESTThread):
             else:
                 raise ConnectionError
 
+    def format_url(self, record):
+        pass
+
     @staticmethod
     def filter_data(upload_all, templates, inputs, append_units_label, record):
+        """ Filter and format data for publishing. """
         # pylint: disable=invalid-name
         # if uploading everything, we must check the upload variables list
         # every time since variables may come and go in a record.  use the
