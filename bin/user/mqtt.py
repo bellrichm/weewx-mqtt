@@ -1,6 +1,8 @@
 # Copyright 2013-2020 Matthew Wall
 # Distributed under the terms of the GNU Public License (GPLv3)
-# pylint: disable=import-outside-toplevel, anomalous-backslash-in-string, fixme, useless-object-inheritance
+# pylint: disable=import-outside-toplevel, anomalous-backslash-in-string, fixme
+# pylint: disable=bad-option-value, useless-object-inheritance, super-with-arguments
+# pylint: enable=bad-option-value
 """
 Upload data to MQTT server
 
@@ -278,30 +280,7 @@ class MQTT(weewx.restx.StdRESTbase):
         if 'tls' in config_dict['StdRESTful']['MQTT']:
             site_dict['tls'] = dict(config_dict['StdRESTful']['MQTT']['tls'])
 
-        topic_configs = site_dict.get('topics', {})
-        if not topic_configs:
-            aggregation = site_dict.get('aggregation', 'individual,aggregate')
-            topics = {}
-            if aggregation.find('aggregate') >= 0:
-                topic = site_dict.get('topic', 'weather') + '/loop'
-                site_dict['topics'] = {}
-                site_dict['topics'][topic] = {}
-                topics[topic] = {}
-                self._init_topic_dict(topic, site_dict, topics[topic], aggregation='aggregate')
-
-            if aggregation.find('individual') >= 0:
-                topic = site_dict.get('topic', 'weather')
-                site_dict['topics'] = {}
-                site_dict['topics'][topic] = {}
-                topics[topic] = {}
-                self._init_topic_dict(topic, site_dict, topics[topic], aggregation='individual')
-        else:
-            if site_dict.get('topic', None) is not None:
-                loginf("'topics' configuration option found, ignoring 'topic' option")
-            topics = {}
-            for topic in topic_configs:
-                topics[topic] = {}
-                self._init_topic_dict(topic, site_dict, topics[topic])
+        topics = self._init_topics_dict(site_dict)
 
         augment_record = False
         archive_binding = False
@@ -350,8 +329,6 @@ class MQTT(weewx.restx.StdRESTbase):
         if not single_thread:
             self.archive_thread.start()
 
-        if 'topic' in site_dict:
-            loginf("topic is %s" % site_dict['topic'])
         loginf("data will be uploaded to %s" %
                _obfuscate_password(site_dict['server_url']))
         if 'tls' in site_dict:
@@ -372,6 +349,34 @@ class MQTT(weewx.restx.StdRESTbase):
     def new_loop_packet_single_thread(self, event):
         """ Publish the loop packet. """
         self.archive_thread.process_record(event.packet, self.dbmanager)
+
+    def _init_topics_dict(self, site_dict):
+        topic_configs = site_dict.get('topics', {})
+        if not topic_configs:
+            aggregation = site_dict.get('aggregation', 'individual,aggregate')
+            topics = {}
+            if aggregation.find('aggregate') >= 0:
+                topic = site_dict.get('topic', 'weather') + '/loop'
+                site_dict['topics'] = {}
+                site_dict['topics'][topic] = {}
+                topics[topic] = {}
+                self._init_topic_dict(topic, site_dict, topics[topic], aggregation='aggregate')
+
+            if aggregation.find('individual') >= 0:
+                topic = site_dict.get('topic', 'weather')
+                site_dict['topics'] = {}
+                site_dict['topics'][topic] = {}
+                topics[topic] = {}
+                self._init_topic_dict(topic, site_dict, topics[topic], aggregation='individual')
+        else:
+            if site_dict.get('topic', None) is not None:
+                loginf("'topics' configuration option found, ignoring 'topic' option")
+            topics = {}
+            for topic in topic_configs:
+                topics[topic] = {}
+                self._init_topic_dict(topic, site_dict, topics[topic])
+
+        return topics
 
     @staticmethod
     def _init_topic_dict(topic, site_dict, topic_dict, aggregation=None):
