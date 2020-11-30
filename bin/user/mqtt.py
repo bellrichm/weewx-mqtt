@@ -174,6 +174,7 @@ except ImportError:
 
 
 def _compat(d, old_label, new_label):
+    # pylint: disable=invalid-name
     if old_label in d and new_label not in d:
         d.setdefault(new_label, d[old_label])
         d.pop(old_label)
@@ -218,6 +219,7 @@ def _get_units_label(obs, unit_system, unit_type=None):
 
 # get the template for an observation based on the observation key
 def _get_template(obs_key, overrides, append_units_label, unit_system):
+    # pylint: disable=invalid-name
     tmpl_dict = dict()
     if append_units_label:
         unit_type = overrides.get('units')
@@ -416,6 +418,7 @@ class MQTT(weewx.restx.StdRESTbase):
         loginf("for %s binding to %s" % (topic, topic_dict['binding']))
 
 class TLSDefaults(object):
+    # pylint: disable=invalid-name
     def __init__(self):
         import ssl
 
@@ -508,20 +511,21 @@ class MQTTThread(weewx.restx.RESTThread):
                     self.tls_dict[opt] = tls[opt]
             logdbg("TLS parameters: %s" % self.tls_dict)
         self.topics = topics
-        self.mc = None
+        self.client = None
         if persist_connection:
             for _count in range(self.max_tries):
                 try:
-                    self.mc = self._connect()
-                    self.mc.loop_start()
+                    self.client = self._connect()
+                    self.client.loop_start()
                     break
-                except (ConnectionRefusedError) as e:
-                    logdbg("Failed connection %d: %s" % (_count+1, e))
+                except (ConnectionRefusedError) as exceptiom:
+                    logdbg("Failed connection %d: %s" % (_count+1, exceptiom))
                 time.sleep(self.retry_wait)
             else:
                 raise ConnectionError
 
     def filter_data(self, upload_all, templates, inputs, append_units_label, record):
+        # pylint: disable=invalid-name
         # if uploading everything, we must check the upload variables list
         # every time since variables may come and go in a record.  use the
         # inputs to override any generic template generation.
@@ -570,16 +574,15 @@ class MQTTThread(weewx.restx.RESTThread):
 
     def process_record(self, record, dbmanager):
         if self.persist_connection:
-            mc = self.mc
+            client = self.client
         else:
-
             for _count in range(self.max_tries):
                 try:
-                    mc = self._connect()
-                    mc.loop_start()
+                    client = self._connect()
+                    client.loop_start()
                     break
-                except (ConnectionRefusedError) as e:
-                    logdbg("Failed connection %d: %s" % (_count+1, e))
+                except (ConnectionRefusedError) as exception:
+                    logdbg("Failed connection %d: %s" % (_count+1, exception))
                 time.sleep(self.retry_wait)
             else:
                 logerr("Could not connect, skipping record: %s" % record)
@@ -594,13 +597,13 @@ class MQTTThread(weewx.restx.RESTThread):
                 break
             if 'interval' in record:
                 if 'archive' in self.topics[topic]['binding']:
-                    self._prep_data(mc, data, topic)
+                    self._prep_data(client, data, topic)
             else:
                 if 'loop' in self.topics[topic]['binding']:
-                    self._prep_data(mc, data, topic)
+                    self._prep_data(client, data, topic)
 
         if not self.persist_connection:
-            self._disconnect(mc)
+            self._disconnect(client)
 
     def _update_record(self, topic, record, dbmanager):
         updated_record = dict(record)
@@ -616,9 +619,9 @@ class MQTTThread(weewx.restx.RESTThread):
                                 record)
         return data
 
-    def _prep_data(self, mc, data, topic):
+    def _prep_data(self, client, data, topic):
         if self.topics[topic]['aggregation'].find('aggregate') >= 0:
-            self._publish_data(mc,
+            self._publish_data(client,
                                data,
                                topic,
                                self.topics[topic]['qos'],
@@ -626,31 +629,31 @@ class MQTTThread(weewx.restx.RESTThread):
         if self.topics[topic]['aggregation'].find('individual') >= 0:
             for key in data:
                 tpc = topic + '/' + key
-                self._publish_data(mc,
+                self._publish_data(client,
                                    tpc,
                                    data[key],
                                    retain=self.topics[topic]['retain'],
                                    qos=self.topics[topic]['qos'])
 
-    def _publish_data(self, mc, data, topic, qos, retain):
+    def _publish_data(self, client, data, topic, qos, retain):
         import socket
         for _count in range(self.max_tries):
             try:
-                (res, mid) = mc.publish(topic, json.dumps(data),
-                                        retain=retain, qos=qos)
+                (res, mid) = client.publish(topic, json.dumps(data),
+                                            retain=retain, qos=qos)
                 if res == mqtt.MQTT_ERR_SUCCESS:
                     return
                 elif res == mqtt.MQTT_ERR_NO_CONN:
                     logerr("Publish failed for %s: %s. Attempting to reconnect." % (topic, res))
-                    mc = self._connect()
-                    mc.loop_start()
+                    client = self._connect()
+                    client.loop_start()
                     if self.persist_connection:
-                        self.mc = mc
+                        self.client = client
                 else:
                     logerr("Publish failed for %s: %s. Skipping." % (topic, res))
                     return
-            except (socket.error, socket.timeout, socket.herror) as e:
-                logdbg("Failed publish attempt %d: %s" % (_count+1, e))
+            except (socket.error, socket.timeout, socket.herror) as exception:
+                logdbg("Failed publish attempt %d: %s" % (_count+1, exception))
                 time.sleep(self.retry_wait)
         else:
             raise weewx.restx.FailedPost("Failed upload after %d tries" %
@@ -662,15 +665,15 @@ class MQTTThread(weewx.restx.RESTThread):
         if not client_id:
             pad = "%032x" % random.getrandbits(128)
             client_id = 'weewx_%s' % pad[:8]
-        mc = mqtt.Client(client_id=client_id)
+        client = mqtt.Client(client_id=client_id)
         if url.username is not None and url.password is not None:
-            mc.username_pw_set(url.username, url.password)
+            client.username_pw_set(url.username, url.password)
         # if we have TLS opts configure TLS on our broker connection
         if len(self.tls_dict) > 0:
-            mc.tls_set(**self.tls_dict)
-        mc.connect(url.hostname, url.port)
-        return mc
+            client.tls_set(**self.tls_dict)
+        client.connect(url.hostname, url.port)
+        return client
 
-    def _disconnect(self, mc):
-        mc.loop_stop()
-        mc.disconnect()
+    def _disconnect(self, client):
+        client.loop_stop()
+        client.disconnect()
