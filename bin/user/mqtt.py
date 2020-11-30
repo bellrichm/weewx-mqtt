@@ -1,5 +1,6 @@
 # Copyright 2013-2020 Matthew Wall
 # Distributed under the terms of the GNU Public License (GPLv3)
+# pylint: disable=import-outside-toplevel, anomalous-backslash-in-string, fixme
 """
 Upload data to MQTT server
 
@@ -118,10 +119,10 @@ try:
 except ImportError:
     from urlparse import urlparse
 
-import paho.mqtt.client as mqtt
 import random
 import sys
 import time
+import paho.mqtt.client as mqtt
 
 try:
     import cjson as json
@@ -151,6 +152,7 @@ if weewx.__version__ < "3":
 
 try:
     # weewx4 logging
+    # pylint: disable=missing-function-docstring, unused-import, invalid-name
     import weeutil.logger
     import logging
     log = logging.getLogger(__name__)
@@ -162,6 +164,7 @@ try:
         log.error(msg)
 except ImportError:
     # old-style weewx logging
+    # pylint: disable=missing-function-docstring
     import syslog
     def logmsg(level, msg):
         syslog.syslog(level, 'restx: MQTT: %s' % msg)
@@ -639,7 +642,7 @@ class MQTTThread(weewx.restx.RESTThread):
         import socket
         for _count in range(self.max_tries):
             try:
-                (res, mid) = client.publish(topic, json.dumps(data),
+                (res, mid) = client.publish(topic, json.dumps(data), # pylint: disable=unused-variable
                                             retain=retain, qos=qos)
                 if res == mqtt.MQTT_ERR_SUCCESS:
                     return
