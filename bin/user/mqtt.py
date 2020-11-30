@@ -626,8 +626,8 @@ class MQTTThread(weewx.restx.RESTThread):
     def _prep_data(self, client, data, topic):
         if self.topics[topic]['aggregation'].find('aggregate') >= 0:
             self._publish_data(client,
-                               data,
                                topic,
+                               data,
                                self.topics[topic]['qos'],
                                self.topics[topic]['retain'])
         if self.topics[topic]['aggregation'].find('individual') >= 0:
@@ -639,7 +639,7 @@ class MQTTThread(weewx.restx.RESTThread):
                                    retain=self.topics[topic]['retain'],
                                    qos=self.topics[topic]['qos'])
 
-    def _publish_data(self, client, data, topic, qos, retain):
+    def _publish_data(self, client, topic, data, qos, retain):
         import socket
         for _count in range(self.max_tries):
             try:
