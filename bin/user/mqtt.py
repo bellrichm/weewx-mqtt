@@ -616,7 +616,7 @@ class MQTTThread(weewx.restx.RESTThread):
                                 self.topics[topic]['templates'],
                                 self.topics[topic]['inputs'],
                                 self.topics[topic]['append_units_label'],
-                                record)
+                                updated_record)
         return data
 
     def _prep_data(self, client, data, topic):
