@@ -267,14 +267,9 @@ class MQTT(weewx.restx.StdRESTbase):
         """
         super(MQTT, self).__init__(engine, config_dict)
         loginf("service version is %s" % VERSION)
-        try:
-            site_dict = config_dict['StdRESTful']['MQTT']
-            site_dict['server_url']
-        except KeyError as e:
-            logerr("Data will not be uploaded: Missing option %s" % e)
-            return
 
-        if not to_bool(site_dict.get('enable', True)):
+        site_dict = weewx.restx.get_site_dict(config_dict, 'MQTT', 'server_url')
+        if site_dict is None:
             return
 
         # for backward compatibility: 'units' is now 'unit_system'
