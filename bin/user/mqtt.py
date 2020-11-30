@@ -138,11 +138,6 @@ import weewx
 import weewx.restx
 import weewx.units
 from weeutil.weeutil import to_int, to_bool
-try:
-    from weeutil.config import search_up
-except ImportError:
-    # pre 3.9.0
-    from weeutil.weeutil import search_up
 
 VERSION = "0.23"
 
@@ -308,19 +303,6 @@ class MQTT(weewx.restx.StdRESTbase):
                 topics[topic] = {}
                 self._init_topic_dict(topic, site_dict, topics[topic])
 
-        mqtt_dict = {}
-        mqtt_dict['server_url'] = site_dict['server_url']
-        mqtt_dict['client_id'] = site_dict.get('client_id', '')
-        mqtt_dict['persist_connection'] = to_bool(site_dict.get('persist_connection', False))
-        mqtt_dict['tls'] = site_dict.get('tls', None)
-        mqtt_dict['log_success'] = to_bool(search_up(site_dict, 'log_success', True))
-        mqtt_dict['log_failure'] = to_bool(search_up(site_dict, 'log_failure', True))
-        mqtt_dict['post_interval'] = to_int(search_up(site_dict, 'post_interval', None))
-        mqtt_dict['timeout'] = to_int(search_up(site_dict, 'timeout', 60))
-        mqtt_dict['max_tries'] = to_int(search_up(site_dict, 'max_tries', 3))
-        mqtt_dict['retry_wait'] = to_int(search_up(site_dict, 'retry_wait', 5))
-
-        single_thread = to_bool(site_dict.get('single_thread', False))
         augment_record = False
         archive_binding = False
         loop_binding = False
@@ -331,7 +313,7 @@ class MQTT(weewx.restx.StdRESTbase):
                 archive_binding = True
             if 'loop' in topics[topic]['binding']:
                 loop_binding = True
-        mqtt_dict['topics'] = topics
+        site_dict['topics'] = topics
 
         # if we are supposed to augment the record with data from weather
         # tables, then get the manager dict to do it.  there may be no weather
@@ -340,11 +322,17 @@ class MQTT(weewx.restx.StdRESTbase):
             if augment_record:
                 _manager_dict = weewx.manager.get_manager_dict_from_config(
                     config_dict, 'wx_binding')
-                mqtt_dict['manager_dict'] = _manager_dict
+                site_dict['manager_dict'] = _manager_dict
                 self.dbmanager = weewx.manager.open_manager(_manager_dict)
         except weewx.UnknownBinding:
             pass
 
+        if 'unit_system' in site_dict:
+            del site_dict['unit_system']
+        if 'append_units_label' in site_dict:
+            del site_dict['append_units_label']
+
+        single_thread = to_bool(site_dict.get('single_thread', False))
         if single_thread:
             self.archive_queue = None
             if archive_binding:
@@ -358,7 +346,7 @@ class MQTT(weewx.restx.StdRESTbase):
             if loop_binding:
                 self.bind(weewx.NEW_LOOP_PACKET, self.new_loop_packet)
 
-        self.archive_thread = MQTTThread(self.archive_queue, **mqtt_dict)
+        self.archive_thread = MQTTThread(self.archive_queue, **site_dict)
         if not single_thread:
             self.archive_thread.start()
 
