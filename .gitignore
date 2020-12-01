@@ -1,2 +1,6 @@
 *~
 .vscode/.ropeproject
+bin/user/__pycache__
+bin/user/tests/__pycache__
+.coverage
+htmlcov
