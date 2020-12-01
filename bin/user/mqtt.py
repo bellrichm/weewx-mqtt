@@ -315,6 +315,8 @@ class MQTT(weewx.restx.StdRESTbase):
             del site_dict['unit_system']
         if 'append_units_label' in site_dict:
             del site_dict['append_units_label']
+        if 'binding' in site_dict:
+            del site_dict['binding']
         if 'single_thread' in site_dict:
             del site_dict['single_thread']
         if 'topic' in site_dict:
