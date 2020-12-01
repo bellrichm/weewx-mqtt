@@ -488,7 +488,7 @@ class TLSDefaults(object):
 
 class MQTTThread(weewx.restx.RESTThread):
     """ Publish data to MQTT. """
-    def __init__(self, queue, server_url, topics, persist_connection,
+    def __init__(self, queue, server_url, topics, persist_connection=False,
                  client_id='',
                  manager_dict=None, tls=None,
                  post_interval=None, stale=None,
