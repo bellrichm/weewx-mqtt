@@ -414,7 +414,7 @@ class MQTT(weewx.restx.StdRESTbase):
             topic_dict['aggregation'] = site_dict['topics'][topic] \
                                             .get('aggregation',
                                                  site_dict.get('aggregation',
-                                                               'individual,aggregate'))
+                                                               'aggregate ,individual'))
         else:
             topic_dict['aggregation'] = aggregation
         topic_dict['append_units_label'] = to_bool(site_dict['topics'][topic] \
