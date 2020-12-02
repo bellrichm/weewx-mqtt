@@ -610,7 +610,7 @@ class TestInitialization(unittest.TestCase):
 
                                 mock_MQTTThread.assert_called_once_with(SUT.archive_queue, **site_config_final)
 
-    def test_new(self):
+    def test_topics_minimum_configuration(self):
         mock_StdEngine = mock.Mock()
         server_url = random_string()
         topic = random_string()
@@ -634,6 +634,516 @@ class TestInitialization(unittest.TestCase):
         topics = {
             topic: self.create_topic(aggregation='aggregate ,individual')
             }
+
+        site_dict = copy.deepcopy(config_dict['StdRESTful']['MQTT'])
+        site_config = configobj.ConfigObj(site_dict)
+
+        site_dict_final = {
+            'server_url' : server_url,
+            'topics': topics,
+            'manager_dict': manager_dict
+        }
+        site_config_final = configobj.ConfigObj(site_dict_final)
+
+        with mock.patch('weewx.restx') as mock_restx:
+            with mock.patch('weewx.manager') as mock_manager:
+                with mock.patch('weewx.manager.open_manager'):
+                    with mock.patch('user.mqtt.MQTT.bind'):
+                        with mock.patch('user.mqtt.loginf'):
+                            with mock.patch('user.mqtt.MQTTThread') as mock_MQTTThread:
+                                mock_restx.get_site_dict.return_value = site_config
+                                mock_manager.get_manager_dict_from_config.return_value = manager_dict
+
+                                SUT = MQTT(mock_StdEngine, config)
+
+                                mock_MQTTThread.assert_called_once_with(SUT.archive_queue, **site_config_final)
+
+    def test_topics_binding(self):
+        mock_StdEngine = mock.Mock()
+        server_url = random_string()
+        topic = random_string()
+
+        config_dict = {
+            'StdRESTful': {
+                'MQTT': {
+                    'server_url': server_url,
+                    'topics': {
+                        topic: {
+                            'binding': 'archive, loop'
+                        }
+                    }
+                }
+            }
+        }
+        config = configobj.ConfigObj(config_dict)
+
+        manager_dict = {
+            random_string(): random_string()
+        }
+
+        topics = {
+            topic: self.create_topic(aggregation='aggregate ,individual', binding='archive, loop')
+        }
+
+        site_dict = copy.deepcopy(config_dict['StdRESTful']['MQTT'])
+        site_config = configobj.ConfigObj(site_dict)
+
+        site_dict_final = {
+            'server_url' : server_url,
+            'topics': topics,
+            'manager_dict': manager_dict
+        }
+        site_config_final = configobj.ConfigObj(site_dict_final)
+
+        with mock.patch('weewx.restx') as mock_restx:
+            with mock.patch('weewx.manager') as mock_manager:
+                with mock.patch('weewx.manager.open_manager'):
+                    with mock.patch('user.mqtt.MQTT.bind') as mock_bind:
+                        with mock.patch('user.mqtt.loginf'):
+                            with mock.patch('user.mqtt.MQTTThread') as mock_MQTTThread:
+                                mock_restx.get_site_dict.return_value = site_config
+                                mock_manager.get_manager_dict_from_config.return_value = manager_dict
+
+                                SUT = MQTT(mock_StdEngine, config)
+
+                                call_args_list = mock_bind.call_args_list
+                                self.assertEqual(len(call_args_list), 2)
+                                self.assertEqual(call_args_list[0].args[0], NEW_ARCHIVE_RECORD)
+                                self.assertEqual(call_args_list[0].args[1], SUT.new_archive_record)
+                                self.assertEqual(call_args_list[1].args[0], NEW_LOOP_PACKET)
+                                self.assertEqual(call_args_list[1].args[1], SUT.new_loop_packet)
+
+                                mock_MQTTThread.assert_called_once_with(SUT.archive_queue, **site_config_final)
+
+    def test_topics_aggregation(self):
+        mock_StdEngine = mock.Mock()
+        server_url = random_string()
+        topic = random_string()
+
+        config_dict = {
+            'StdRESTful': {
+                'MQTT': {
+                    'server_url': server_url,
+                    'topics': {
+                        topic: {
+                            'aggregation': 'individual'
+                        }
+                    }
+                }
+            }
+        }
+        config = configobj.ConfigObj(config_dict)
+
+        manager_dict = {
+            random_string(): random_string()
+        }
+
+        topics = {
+            topic: self.create_topic(aggregation='individual')
+        }
+
+        site_dict = copy.deepcopy(config_dict['StdRESTful']['MQTT'])
+        site_config = configobj.ConfigObj(site_dict)
+
+        site_dict_final = {
+            'server_url' : server_url,
+            'topics': topics,
+            'manager_dict': manager_dict
+        }
+        site_config_final = configobj.ConfigObj(site_dict_final)
+
+        with mock.patch('weewx.restx') as mock_restx:
+            with mock.patch('weewx.manager') as mock_manager:
+                with mock.patch('weewx.manager.open_manager'):
+                    with mock.patch('user.mqtt.MQTT.bind'):
+                        with mock.patch('user.mqtt.loginf'):
+                            with mock.patch('user.mqtt.MQTTThread') as mock_MQTTThread:
+                                mock_restx.get_site_dict.return_value = site_config
+                                mock_manager.get_manager_dict_from_config.return_value = manager_dict
+
+                                SUT = MQTT(mock_StdEngine, config)
+
+                                mock_MQTTThread.assert_called_once_with(SUT.archive_queue, **site_config_final)
+
+    def test_topicsskip_upload(self):
+        mock_StdEngine = mock.Mock()
+        server_url = random_string()
+        topic = random_string()
+
+        config_dict = {
+            'StdRESTful': {
+                'MQTT': {
+                    'server_url': server_url,
+                    'topics': {
+                        topic: {
+                            'skip_upload': True
+                        }
+                    }
+                }
+            }
+        }
+        config = configobj.ConfigObj(config_dict)
+
+        manager_dict = {
+            random_string(): random_string()
+        }
+
+        topics = {
+            topic: self.create_topic(aggregation='aggregate ,individual', skip_upload=True)
+        }
+
+        site_dict = copy.deepcopy(config_dict['StdRESTful']['MQTT'])
+        site_config = configobj.ConfigObj(site_dict)
+
+        site_dict_final = {
+            'server_url' : server_url,
+            'topics': topics,
+            'manager_dict': manager_dict
+        }
+        site_config_final = configobj.ConfigObj(site_dict_final)
+
+        with mock.patch('weewx.restx') as mock_restx:
+            with mock.patch('weewx.manager') as mock_manager:
+                with mock.patch('weewx.manager.open_manager'):
+                    with mock.patch('user.mqtt.MQTT.bind'):
+                        with mock.patch('user.mqtt.loginf'):
+                            with mock.patch('user.mqtt.MQTTThread') as mock_MQTTThread:
+                                mock_restx.get_site_dict.return_value = site_config
+                                mock_manager.get_manager_dict_from_config.return_value = manager_dict
+
+                                SUT = MQTT(mock_StdEngine, config)
+
+                                mock_MQTTThread.assert_called_once_with(SUT.archive_queue, **site_config_final)
+
+    def test_topicsobs_to_upload(self):
+        mock_StdEngine = mock.Mock()
+        server_url = random_string()
+        topic = random_string()
+
+        config_dict = {
+            'StdRESTful': {
+                'MQTT': {
+                    'server_url': server_url,
+                    'topics': {
+                        topic: {
+                            'obs_to_upload': 'none'
+                        }
+                    }
+                }
+            }
+        }
+        config = configobj.ConfigObj(config_dict)
+
+        manager_dict = {
+            random_string(): random_string()
+        }
+
+        topics = {
+            topic: self.create_topic(aggregation='aggregate ,individual', upload_all=False)
+        }
+
+        site_dict = copy.deepcopy(config_dict['StdRESTful']['MQTT'])
+        site_config = configobj.ConfigObj(site_dict)
+
+        site_dict_final = {
+            'server_url' : server_url,
+            'topics': topics,
+            'manager_dict': manager_dict
+        }
+        site_config_final = configobj.ConfigObj(site_dict_final)
+
+        with mock.patch('weewx.restx') as mock_restx:
+            with mock.patch('weewx.manager') as mock_manager:
+                with mock.patch('weewx.manager.open_manager'):
+                    with mock.patch('user.mqtt.MQTT.bind'):
+                        with mock.patch('user.mqtt.loginf'):
+                            with mock.patch('user.mqtt.MQTTThread') as mock_MQTTThread:
+                                mock_restx.get_site_dict.return_value = site_config
+                                mock_manager.get_manager_dict_from_config.return_value = manager_dict
+
+                                SUT = MQTT(mock_StdEngine, config)
+
+                                mock_MQTTThread.assert_called_once_with(SUT.archive_queue, **site_config_final)
+
+    def test_topicsappend_units_label(self):
+        mock_StdEngine = mock.Mock()
+        server_url = random_string()
+        topic = random_string()
+
+        config_dict = {
+            'StdRESTful': {
+                'MQTT': {
+                    'server_url': server_url,
+                    'topics': {
+                        topic: {
+                            'append_units_label': False
+                        }
+                    }
+                }
+            }
+        }
+        config = configobj.ConfigObj(config_dict)
+
+        manager_dict = {
+            random_string(): random_string()
+        }
+
+        topics = {
+            topic: self.create_topic(aggregation='aggregate ,individual', append_units_label=False)
+        }
+
+        site_dict = copy.deepcopy(config_dict['StdRESTful']['MQTT'])
+        site_config = configobj.ConfigObj(site_dict)
+
+        site_dict_final = {
+            'server_url' : server_url,
+            'topics': topics,
+            'manager_dict': manager_dict
+        }
+        site_config_final = configobj.ConfigObj(site_dict_final)
+
+        with mock.patch('weewx.restx') as mock_restx:
+            with mock.patch('weewx.manager') as mock_manager:
+                with mock.patch('weewx.manager.open_manager'):
+                    with mock.patch('user.mqtt.MQTT.bind'):
+                        with mock.patch('user.mqtt.loginf'):
+                            with mock.patch('user.mqtt.MQTTThread') as mock_MQTTThread:
+                                mock_restx.get_site_dict.return_value = site_config
+                                mock_manager.get_manager_dict_from_config.return_value = manager_dict
+
+                                SUT = MQTT(mock_StdEngine, config)
+
+                                mock_MQTTThread.assert_called_once_with(SUT.archive_queue, **site_config_final)
+
+    def test_topicsretain(self):
+        mock_StdEngine = mock.Mock()
+        server_url = random_string()
+        topic = random_string()
+
+        config_dict = {
+            'StdRESTful': {
+                'MQTT': {
+                    'server_url': server_url,
+                    'topics': {
+                        topic: {
+                            'retain': True
+                        }
+                    }
+                }
+            }
+        }
+        config = configobj.ConfigObj(config_dict)
+
+        manager_dict = {
+            random_string(): random_string()
+        }
+
+        topics = {
+            topic: self.create_topic(aggregation='aggregate ,individual', retain=True)
+        }
+
+        site_dict = copy.deepcopy(config_dict['StdRESTful']['MQTT'])
+        site_config = configobj.ConfigObj(site_dict)
+
+        site_dict_final = {
+            'server_url' : server_url,
+            'topics': topics,
+            'manager_dict': manager_dict
+        }
+        site_config_final = configobj.ConfigObj(site_dict_final)
+
+        with mock.patch('weewx.restx') as mock_restx:
+            with mock.patch('weewx.manager') as mock_manager:
+                with mock.patch('weewx.manager.open_manager'):
+                    with mock.patch('user.mqtt.MQTT.bind'):
+                        with mock.patch('user.mqtt.loginf'):
+                            with mock.patch('user.mqtt.MQTTThread') as mock_MQTTThread:
+                                mock_restx.get_site_dict.return_value = site_config
+                                mock_manager.get_manager_dict_from_config.return_value = manager_dict
+
+                                SUT = MQTT(mock_StdEngine, config)
+
+
+                                mock_MQTTThread.assert_called_once_with(SUT.archive_queue, **site_config_final)
+
+    def test_topicsaugment_record(self):
+        mock_StdEngine = mock.Mock()
+        server_url = random_string()
+        topic = random_string()
+
+        config_dict = {
+            'StdRESTful': {
+                'MQTT': {
+                    'server_url': server_url,
+                    'topics': {
+                        topic: {
+                            'augment_record': False
+                        }
+                    }
+                }
+            }
+        }
+        config = configobj.ConfigObj(config_dict)
+
+        topics = {
+            topic: self.create_topic(aggregation='aggregate ,individual', augment_record=False)
+        }
+
+        site_dict = copy.deepcopy(config_dict['StdRESTful']['MQTT'])
+        site_config = configobj.ConfigObj(site_dict)
+
+        site_dict_final = {
+            'server_url' : server_url,
+            'topics': topics
+        }
+        site_config_final = configobj.ConfigObj(site_dict_final)
+
+        with mock.patch('weewx.restx') as mock_restx:
+            with mock.patch('weewx.manager') as mock_manager:
+                with mock.patch('weewx.manager.open_manager'):
+                    with mock.patch('user.mqtt.MQTT.bind'):
+                        with mock.patch('user.mqtt.loginf'):
+                            with mock.patch('user.mqtt.MQTTThread') as mock_MQTTThread:
+                                mock_restx.get_site_dict.return_value = site_config
+
+                                SUT = MQTT(mock_StdEngine, config)
+
+                                mock_manager.get_manager_dict_from_config.assert_not_called()
+                                mock_manager.open_manager.assert_not_called()
+
+                                mock_MQTTThread.assert_called_once_with(SUT.archive_queue, **site_config_final)
+
+    def test_topicsqos(self):
+        mock_StdEngine = mock.Mock()
+        server_url = random_string()
+        topic = random_string()
+
+        config_dict = {
+            'StdRESTful': {
+                'MQTT': {
+                    'server_url': server_url,
+                    'topics': {
+                        topic: {
+                            'qos': 2
+                        }
+                    }
+                }
+            }
+        }
+        config = configobj.ConfigObj(config_dict)
+
+        manager_dict = {
+            random_string(): random_string()
+        }
+
+        topics = {
+            topic: self.create_topic(aggregation='aggregate ,individual', qos=2)
+        }
+
+        site_dict = copy.deepcopy(config_dict['StdRESTful']['MQTT'])
+        site_config = configobj.ConfigObj(site_dict)
+
+        site_dict_final = {
+            'server_url' : server_url,
+            'topics': topics,
+            'manager_dict': manager_dict
+        }
+        site_config_final = configobj.ConfigObj(site_dict_final)
+
+        with mock.patch('weewx.restx') as mock_restx:
+            with mock.patch('weewx.manager') as mock_manager:
+                with mock.patch('weewx.manager.open_manager'):
+                    with mock.patch('user.mqtt.MQTT.bind'):
+                        with mock.patch('user.mqtt.loginf'):
+                            with mock.patch('user.mqtt.MQTTThread') as mock_MQTTThread:
+                                mock_restx.get_site_dict.return_value = site_config
+                                mock_manager.get_manager_dict_from_config.return_value = manager_dict
+
+                                SUT = MQTT(mock_StdEngine, config)
+
+                                mock_MQTTThread.assert_called_once_with(SUT.archive_queue, **site_config_final)
+
+    def test_topicsunit_system(self):
+        mock_StdEngine = mock.Mock()
+        server_url = random_string()
+        topic = random_string()
+
+        config_dict = {
+            'StdRESTful': {
+                'MQTT': {
+                    'server_url': server_url,
+                    'topics': {
+                        topic: {
+                            'unit_system': 'US'
+                        }
+                    }
+                }
+            }
+        }
+        config = configobj.ConfigObj(config_dict)
+
+        manager_dict = {
+            random_string(): random_string()
+        }
+
+        topics = {
+            topic: self.create_topic(aggregation='aggregate ,individual')
+        }
+        topics[topic]['unit_system'] = 1
+
+        site_dict = copy.deepcopy(config_dict['StdRESTful']['MQTT'])
+        site_config = configobj.ConfigObj(site_dict)
+
+        site_dict_final = {
+            'server_url' : server_url,
+            'topics': topics,
+            'manager_dict': manager_dict
+        }
+        site_config_final = configobj.ConfigObj(site_dict_final)
+
+        with mock.patch('weewx.restx') as mock_restx:
+            with mock.patch('weewx.manager') as mock_manager:
+                with mock.patch('weewx.manager.open_manager'):
+                    with mock.patch('user.mqtt.MQTT.bind'):
+                        with mock.patch('user.mqtt.loginf'):
+                            with mock.patch('user.mqtt.MQTTThread') as mock_MQTTThread:
+                                mock_restx.get_site_dict.return_value = site_config
+                                mock_manager.get_manager_dict_from_config.return_value = manager_dict
+
+                                SUT = MQTT(mock_StdEngine, config)
+
+                                mock_MQTTThread.assert_called_once_with(SUT.archive_queue, **site_config_final)
+
+    def test_topicsinputs(self):
+        mock_StdEngine = mock.Mock()
+        server_url = random_string()
+        topic = random_string()
+
+        inputs = {
+            random_string(): random_string()
+        }
+
+        config_dict = {
+            'StdRESTful': {
+                'MQTT': {
+                    'server_url': server_url,
+                    'topics': {
+                        topic: {
+                            'inputs': inputs
+                        }
+                    }
+                }
+            }
+        }
+        config = configobj.ConfigObj(config_dict)
+
+        manager_dict = {
+            random_string(): random_string()
+        }
+
+        topics = {
+            topic: self.create_topic(aggregation='aggregate ,individual')
+        }
 
         site_dict = copy.deepcopy(config_dict['StdRESTful']['MQTT'])
         site_config = configobj.ConfigObj(site_dict)
