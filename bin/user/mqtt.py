@@ -311,6 +311,7 @@ class MQTT(weewx.restx.StdRESTbase):
 
         single_thread = to_bool(site_dict.get('single_thread', False))
 
+        # ToDo: change to additive
         if 'unit_system' in site_dict:
             del site_dict['unit_system']
         if 'append_units_label' in site_dict:
@@ -325,6 +326,16 @@ class MQTT(weewx.restx.StdRESTbase):
             del site_dict['qos']
         if 'retain' in site_dict:
             del site_dict['retain']
+        if 'aggregation' in site_dict:
+            del site_dict['aggregation']
+        if 'skip_upload' in site_dict:
+            del site_dict['skip_upload']
+        if 'obs_to_upload' in site_dict:
+            del site_dict['obs_to_upload']
+        if 'augment_record' in site_dict:
+            del site_dict['augment_record']
+        if 'inputs' in site_dict:
+            del site_dict['inputs']
 
         if single_thread:
             self.archive_queue = None
@@ -394,7 +405,9 @@ class MQTT(weewx.restx.StdRESTbase):
 
     @staticmethod
     def _init_topic_dict(topic, site_dict, topic_dict, aggregation=None):
-        topic_dict['skip_upload'] = False
+        topic_dict['skip_upload'] = site_dict['topics'][topic] \
+                                        .get('skip_upload',
+                                             site_dict.get('skip_upload', False))
         topic_dict['binding'] = site_dict['topics'][topic].get('binding',
                                                                site_dict.get('binding', 'archive'))
         if aggregation is None:
