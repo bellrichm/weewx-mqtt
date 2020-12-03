@@ -194,13 +194,27 @@ class TestPersistentConnection(unittest.TestCase):
                 self.assertEqual(mock_time.sleep.call_count, 0)
 
 class TestFilterData(unittest.TestCase):
+    observation1 = random_string()
+    observation2 = random_string()
+    observation3 = random_string()
+
+    @classmethod
+    def getStandardUnitType_return_value(cls, *args, **kwargs): # match signature pylint: disable=unused-argument
+        if args[1] == cls.observation1:
+            return 'degree_F', 'group_temperature'
+        if args[1] == cls.observation2:
+            return 'degree_F', 'group_temperature'
+        if args[1] == cls.observation3:
+            return 'degree_F', 'group_temperature'            
+
+        return None, None
+
+    @classmethod
+    def convert_return_value(cls, *args, **kwargs): # match signature pylint: disable=unused-argument
+        val_t = args[0]
+        return [(val_t[0] - 32) * 5/9]
+
     def test_example(self):
-        def getStandardUnitType_return_value(*args, **kwargs): # match signature pylint: disable=unused-argument
-            if args[1] == 'extraTemp1':
-                return 'degree_F', 'group_temperature'
-
-            return None, None
-
         site_dict = {
             'server_url' : random_string(),
             'topics': {
@@ -216,19 +230,25 @@ class TestFilterData(unittest.TestCase):
         upload_all = True
         templates = dict()
         inputs_dict = {
-            'extraTemp1': {
+            self.observation1: {
                 'name': 'bar',
                 'format': '%.2f',
                 'units': 'degree_C'
+            },
+            self.observation2: {
+                'format': '%.2f'
             }
         }
         inputs = configobj.ConfigObj(inputs_dict)
         append_units_label = True
-        extraTemp1 = round(random.uniform(1, 100), 10)
-        extraTemp1_c = (extraTemp1 - 32) * 5/9
+        observation1 = round(random.uniform(1, 100), 10)
+        observation2 = round(random.uniform(1, 100), 10)
+        observation3 = round(random.uniform(1, 100), 10)
         record = {
             'usUnits': 1,
-            'extraTemp1': extraTemp1,
+            self.observation1: observation1,
+            self.observation2: observation2,
+            self.observation3: observation3,
             'latitude': round(random.uniform(-90, 90), 10),
             'longitude': round(random.uniform(-180, 180), 10),
             'altitude_meter': round(random.uniform(0, 2000), 10),
@@ -236,14 +256,14 @@ class TestFilterData(unittest.TestCase):
         }
 
         with mock.patch('weewx.units') as mock_units:
-            mock_units.getStandardUnitType.side_effect = getStandardUnitType_return_value
-            mock_units.convert.return_value = [extraTemp1_c]
+            mock_units.getStandardUnitType.side_effect = self.getStandardUnitType_return_value
+            mock_units.convert.side_effect = self.convert_return_value
             SUT = MQTTThread(None, **site_config)
 
             filtered_record = SUT.filter_data(upload_all, templates, inputs, append_units_label, record)
             print(record)
             print(filtered_record)
-            print(templates)
+            #print(templates)
             print("done")
 
 if __name__ == '__main__':
