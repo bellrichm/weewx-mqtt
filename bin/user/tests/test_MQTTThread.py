@@ -9,6 +9,8 @@ import mock
 
 import configobj
 
+import paho.mqtt.client as mqtt
+
 from user.mqtt import MQTTThread
 
 def random_string():
@@ -504,9 +506,133 @@ class TestFilterData(unittest.TestCase):
 
             self.assertEqual(filtered_record, returned_record)
 
+class TestProcessRecord(unittest.TestCase):
+    def __init__(self, *args, **kwargs):
+        super(TestProcessRecord, self).__init__(*args, **kwargs)
+        self.client_connection = None
+        self.connection_tries = 0
+        self.max_connection_tries = random.randint(1, 3)
+
+    def reset_connection_error(self, *args, **kwargs): # match signature pylint: disable=unused-argument
+        if self.connection_tries >= self.max_connection_tries:
+            self.client_connection.side_effect = mock.Mock(side_effect=None)
+        self.connection_tries += 1
+        return mock.DEFAULT
+
+    def test_connection_error(self):
+        mock_manager = mock.Mock()
+        max_tries = random.randint(4, 6)
+        site_dict = {
+            'server_url' : 'mqtt://username:password@localhost:1883/',
+            'max_tries': max_tries,
+            'topics': {
+                'weather/loop': create_topic(),
+                'weather': create_topic(aggregation='individual')
+            },
+            'manager_dict': {
+                random_string(): random_string()
+            }
+        }
+        site_config = configobj.ConfigObj(site_dict)
+
+        record = {}
+
+        exception = ConnectionRefusedError("Connect exception.")
+
+        with mock.patch('paho.mqtt.client.Client') as mock_client:
+            with mock.patch('user.mqtt.time') as mock_time:
+                with mock.patch('user.mqtt.logerr') as mock_logerr:
+                    mock_client.return_value = mock_client
+                    mock_client.connect.side_effect = mock.Mock(side_effect=exception)
+
+                    SUT = MQTTThread(None, **site_config)
+
+                    SUT.process_record(record, mock_manager)
+
+                    self.assertEqual(mock_client.connect.call_count, max_tries)
+                    self.assertEqual(mock_time.sleep.call_count, max_tries)
+                    mock_logerr.assert_called_once_with("Could not connect, skipping record: %s" % record)
+
+    def test_connection_recovers(self):
+        mock_manager = mock.Mock()
+        max_tries = random.randint(4, 6)
+        site_dict = {
+            'server_url' : 'mqtt://username:password@localhost:1883/',
+            'max_tries': max_tries,
+            'topics': {
+                'weather/loop': create_topic(binding='loop'),
+                'weather': create_topic(aggregation='individual', binding='loop')
+            },
+            'manager_dict': {
+                random_string(): random_string()
+            }
+        }
+        site_dict['topics']['weather/loop']['unit_system'] = 'US'
+        site_dict['topics']['weather']['unit_system'] = 'US'
+        site_config = configobj.ConfigObj(site_dict)
+
+        record = {}
+
+        exception = ConnectionRefusedError("Connect exception.")
+        self.connection_tries = 0
+
+        with mock.patch('paho.mqtt.client.Client') as mock_client:
+            with mock.patch('user.mqtt.time') as mock_time:
+                with mock.patch('user.mqtt.MQTTThread.get_record'):
+                    with mock.patch('weewx.units'):
+                        mock_client.return_value = mock_client
+                        mock_client.connect.side_effect = mock.Mock(side_effect=exception)
+                        self.client_connection = mock_client.connect
+                        mock_time.sleep.side_effect = self.reset_connection_error
+                        mock_client.publish.return_value = [mqtt.MQTT_ERR_SUCCESS, None]
+
+                        SUT = MQTTThread(None, **site_config)
+
+                        SUT.process_record(record, mock_manager)
+
+                        self.assertEqual(mock_client.connect.call_count, self.connection_tries + 1)
+                        self.assertEqual(mock_time.sleep.call_count, self.connection_tries)
+
+    def test_connection_success(self):
+        mock_manager = mock.Mock()
+        max_tries = random.randint(4, 6)
+        site_dict = {
+            'server_url' : 'mqtt://username:password@localhost:1883/',
+            'max_tries': max_tries,
+            'topics': {
+                'weather/loop': create_topic(binding='loop'),
+                'weather': create_topic(aggregation='individual', binding='loop')
+            },
+            'manager_dict': {
+                random_string(): random_string()
+            }
+        }
+        site_dict['topics']['weather/loop']['unit_system'] = 'US'
+        site_dict['topics']['weather']['unit_system'] = 'US'
+        site_config = configobj.ConfigObj(site_dict)
+
+        record = {}
+
+        exception = ConnectionRefusedError("Connect exception.")
+        self.connection_tries = 0
+
+        with mock.patch('paho.mqtt.client.Client') as mock_client:
+            with mock.patch('user.mqtt.time') as mock_time:
+                with mock.patch('user.mqtt.MQTTThread.get_record'):
+                    with mock.patch('weewx.units'):
+                        mock_client.return_value = mock_client
+                        mock_client.publish.return_value = [mqtt.MQTT_ERR_SUCCESS, None]
+
+                        SUT = MQTTThread(None, **site_config)
+
+                        SUT.process_record(record, mock_manager)
+
+                        self.assertEqual(mock_client.connect.call_count, 1)
+                        self.assertEqual(mock_time.sleep.call_count, 0)                      
+
 if __name__ == '__main__':
     #test_suite = unittest.TestSuite()
-    #test_suite.addTest(TestFilterData('test_new'))
+    #test_suite.addTest(TestProcessRecord('test_new'))
     #unittest.TextTestRunner().run(test_suite)
 
     unittest.main(exit=False)
