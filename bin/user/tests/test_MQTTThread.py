@@ -1,4 +1,5 @@
 # pylint: disable=missing-docstring, invalid-name, line-too-long, dangerous-default-value
+import copy
 import random
 import ssl
 import string
@@ -197,6 +198,7 @@ class TestFilterData(unittest.TestCase):
     observation1 = random_string()
     observation2 = random_string()
     observation3 = random_string()
+    observation4 = random_string()
 
     @classmethod
     def getStandardUnitType_return_value(cls, *args, **kwargs): # match signature pylint: disable=unused-argument
@@ -205,7 +207,9 @@ class TestFilterData(unittest.TestCase):
         if args[1] == cls.observation2:
             return 'degree_F', 'group_temperature'
         if args[1] == cls.observation3:
-            return 'degree_F', 'group_temperature'            
+            return 'degree_F', 'group_temperature'
+        if args[1] == cls.observation4:
+            return 'degree_F', 'group_temperature'
 
         return None, None
 
@@ -214,7 +218,7 @@ class TestFilterData(unittest.TestCase):
         val_t = args[0]
         return [(val_t[0] - 32) * 5/9]
 
-    def test_example(self):
+    def test_upload_all_true(self):
         site_dict = {
             'server_url' : random_string(),
             'topics': {
@@ -228,10 +232,16 @@ class TestFilterData(unittest.TestCase):
         site_config = configobj.ConfigObj(site_dict)
 
         upload_all = True
-        templates = dict()
+        templates = {
+            self.observation3: {
+                'name': random_string(),
+                'format': '%.2f',
+                'units': 'degree_C'
+            },
+        }
         inputs_dict = {
             self.observation1: {
-                'name': 'bar',
+                'name': random_string(),
                 'format': '%.2f',
                 'units': 'degree_C'
             },
@@ -241,19 +251,32 @@ class TestFilterData(unittest.TestCase):
         }
         inputs = configobj.ConfigObj(inputs_dict)
         append_units_label = True
-        observation1 = round(random.uniform(1, 100), 10)
+        append_units_label = False
+        #observation1 = round(random.uniform(1, 100), 10)
         observation2 = round(random.uniform(1, 100), 10)
-        observation3 = round(random.uniform(1, 100), 10)
+        #observation3 = round(random.uniform(1, 100), 10)
+        observation4 = round(random.uniform(1, 100), 10)
         record = {
-            'usUnits': 1,
-            self.observation1: observation1,
+            'usUnits': 1.0,
+            #self.observation1: observation1,
             self.observation2: observation2,
-            self.observation3: observation3,
-            'latitude': round(random.uniform(-90, 90), 10),
-            'longitude': round(random.uniform(-180, 180), 10),
-            'altitude_meter': round(random.uniform(0, 2000), 10),
-            'altitude_foot': round(random.uniform(0, 2000), 10)
+            #self.observation3: observation3,
+            self.observation4: observation4,
+            #'latitude': round(random.uniform(-90, 90), 10),
+            #'longitude': round(random.uniform(-180, 180), 10),
+            #'altitude_meter': round(random.uniform(0, 2000), 10),
+            #'altitude_foot': round(random.uniform(0, 2000), 10)
         }
+
+        returned_record = copy.deepcopy(record)
+        returned_record[self.observation2] = str(round(returned_record[self.observation2], 2))
+        returned_record[self.observation4] = str(returned_record[self.observation4])
+        returned_record['usUnits'] = str(returned_record['usUnits'])
+
+        returned_templates = copy.deepcopy(templates)
+        returned_templates[self.observation2] = inputs_dict[self.observation2]
+        returned_templates[self.observation4] = {}
+        returned_templates['usUnits'] = {}
 
         with mock.patch('weewx.units') as mock_units:
             mock_units.getStandardUnitType.side_effect = self.getStandardUnitType_return_value
@@ -261,10 +284,288 @@ class TestFilterData(unittest.TestCase):
             SUT = MQTTThread(None, **site_config)
 
             filtered_record = SUT.filter_data(upload_all, templates, inputs, append_units_label, record)
-            print(record)
             print(filtered_record)
+            print(returned_record)
+            #print(inputs_dict)
             #print(templates)
+            #print(returned_templates)
+
+            self.assertEqual(templates, returned_templates)
+            self.assertEqual(filtered_record, returned_record)
+
             print("done")
+
+    def test_upload_all_false(self):
+        site_dict = {
+            'server_url' : random_string(),
+            'topics': {
+                'weather/loop': create_topic(),
+                'weather': create_topic(aggregation='individual')
+            },
+            'manager_dict': {
+                random_string(): random_string()
+            }
+        }
+        site_config = configobj.ConfigObj(site_dict)
+
+        upload_all = False
+        templates = dict()
+        inputs_dict = {
+            self.observation1: {
+                'name': random_string(),
+                'format': '%.2f',
+                'units': 'degree_C'
+            },
+            self.observation2: {
+                'format': '%.2f'
+            }
+        }
+        inputs = configobj.ConfigObj(inputs_dict)
+        append_units_label = True
+        append_units_label = False
+        #observation1 = round(random.uniform(1, 100), 10)
+        observation2 = round(random.uniform(1, 100), 10)
+        #observation3 = round(random.uniform(1, 100), 10)
+        observation4 = round(random.uniform(1, 100), 10)
+        record = {
+            'usUnits': 1.0,
+            #self.observation1: observation1,
+            self.observation2: observation2,
+            #self.observation3: observation3,
+            self.observation4: observation4,
+            #'latitude': round(random.uniform(-90, 90), 10),
+            #'longitude': round(random.uniform(-180, 180), 10),
+            #'altitude_meter': round(random.uniform(0, 2000), 10),
+            #'altitude_foot': round(random.uniform(0, 2000), 10)
+        }
+
+        returned_record = {}
+        returned_record[self.observation2] = str(round(record[self.observation2], 2))
+
+        returned_templates = copy.deepcopy(inputs_dict)
+
+        with mock.patch('weewx.units') as mock_units:
+            mock_units.getStandardUnitType.side_effect = self.getStandardUnitType_return_value
+            mock_units.convert.side_effect = self.convert_return_value
+            SUT = MQTTThread(None, **site_config)
+
+            filtered_record = SUT.filter_data(upload_all, templates, inputs, append_units_label, record)
+            #print(filtered_record)
+            #print(returned_record)
+            #print(inputs_dict)
+            print(templates)
+            print(returned_templates)
+
+            self.assertEqual(templates, returned_templates)
+            self.assertEqual(filtered_record, returned_record)
+
+            print("done")
+
+    def test_unit_conversion(self):
+        site_dict = {
+            'server_url' : random_string(),
+            'topics': {
+                'weather/loop': create_topic(),
+                'weather': create_topic(aggregation='individual')
+            },
+            'manager_dict': {
+                random_string(): random_string()
+            }
+        }
+        site_config = configobj.ConfigObj(site_dict)
+
+        upload_all = False
+        templates = dict()
+        inputs_dict = {
+            self.observation1: {
+                'name': random_string(),
+                'format': '%.2f',
+                'units': 'degree_C'
+            },
+            self.observation2: {
+                'format': '%.2f'
+            }
+        }
+        inputs = configobj.ConfigObj(inputs_dict)
+        append_units_label = True
+        append_units_label = False
+        observation1 = round(random.uniform(1, 100), 10)
+        observation2 = round(random.uniform(1, 100), 10)
+        #observation3 = round(random.uniform(1, 100), 10)
+        #observation4 = round(random.uniform(1, 100), 10)
+        record = {
+            'usUnits': 1.0,
+            self.observation1: observation1,
+            self.observation2: observation2,
+            #self.observation3: observation3,
+            #self.observation4: observation4,
+            #'latitude': round(random.uniform(-90, 90), 10),
+            #'longitude': round(random.uniform(-180, 180), 10),
+            #'altitude_meter': round(random.uniform(0, 2000), 10),
+            #'altitude_foot': round(random.uniform(0, 2000), 10)
+        }
+
+        returned_record = {}
+        returned_record[inputs[self.observation1]['name']] = str(round((record[self.observation1] - 32) * 5/9, 2))
+        returned_record[self.observation2] = str(round(record[self.observation2], 2))
+
+        returned_templates = copy.deepcopy(inputs_dict)
+
+        with mock.patch('weewx.units') as mock_units:
+            mock_units.getStandardUnitType.side_effect = self.getStandardUnitType_return_value
+            mock_units.convert.side_effect = self.convert_return_value
+            SUT = MQTTThread(None, **site_config)
+
+            filtered_record = SUT.filter_data(upload_all, templates, inputs, append_units_label, record)
+            print(filtered_record)
+            print(returned_record)
+            #print(inputs_dict)
+            #print(templates)
+            #print(returned_templates)
+
+            self.assertEqual(templates, returned_templates)
+            self.assertEqual(filtered_record, returned_record)
+
+            print("done")
+
+    def test_longitude_latitude(self):
+        site_dict = {
+            'server_url' : random_string(),
+            'topics': {
+                'weather/loop': create_topic(),
+                'weather': create_topic(aggregation='individual')
+            },
+            'manager_dict': {
+                random_string(): random_string()
+            }
+        }
+        site_config = configobj.ConfigObj(site_dict)
+
+        upload_all = True
+        templates = {}
+        inputs_dict = {}
+        inputs = configobj.ConfigObj(inputs_dict)
+        append_units_label = False
+        record = {
+            'usUnits': 1.0,
+            'latitude': round(random.uniform(-90, 90), 6),
+            'longitude': round(random.uniform(-180, 180), 6),
+            #'altitude_meter': round(random.uniform(0, 2000), 6),
+            #'altitude_foot': round(random.uniform(0, 2000), 6)
+        }
+
+        position = "%f,%f" % (record['latitude'], record['longitude'])
+        print(position)
+        returned_record = copy.deepcopy(record)
+        returned_record['latitude'] = str(returned_record['latitude'])
+        returned_record['longitude'] = str(returned_record['longitude'])
+        returned_record['usUnits'] = str(returned_record['usUnits'])
+        returned_record['position'] = str(position)
+
+        with mock.patch('weewx.units') as mock_units:
+            mock_units.getStandardUnitType.side_effect = self.getStandardUnitType_return_value
+            mock_units.convert.side_effect = self.convert_return_value
+            SUT = MQTTThread(None, **site_config)
+
+            filtered_record = SUT.filter_data(upload_all, templates, inputs, append_units_label, record)
+            print(filtered_record)
+            print(returned_record)
+
+            self.assertEqual(filtered_record, returned_record)
+
+            print("done")
+
+    def test_altitude_meter(self):
+        site_dict = {
+            'server_url' : random_string(),
+            'topics': {
+                'weather/loop': create_topic(),
+                'weather': create_topic(aggregation='individual')
+            },
+            'manager_dict': {
+                random_string(): random_string()
+            }
+        }
+        site_config = configobj.ConfigObj(site_dict)
+
+        upload_all = True
+        templates = {}
+        inputs_dict = {}
+        inputs = configobj.ConfigObj(inputs_dict)
+        append_units_label = False
+        record = {
+            'usUnits': 1.0,
+            'latitude': round(random.uniform(-90, 90), 6),
+            'longitude': round(random.uniform(-180, 180), 6),
+            'altitude_meter': round(random.uniform(0, 2000), 6),
+            #'altitude_foot': round(random.uniform(0, 2000), 6)
+        }
+
+        position = "%f,%f,%f" % (record['latitude'], record['longitude'], record['altitude_meter'])
+        print(position)
+        returned_record = copy.deepcopy(record)
+        returned_record['latitude'] = str(returned_record['latitude'])
+        returned_record['longitude'] = str(returned_record['longitude'])
+        returned_record['altitude_meter'] = str(returned_record['altitude_meter'])
+        returned_record['usUnits'] = str(returned_record['usUnits'])
+        returned_record['position'] = str(position)
+
+        with mock.patch('weewx.units') as mock_units:
+            mock_units.getStandardUnitType.side_effect = self.getStandardUnitType_return_value
+            mock_units.convert.side_effect = self.convert_return_value
+            SUT = MQTTThread(None, **site_config)
+
+            filtered_record = SUT.filter_data(upload_all, templates, inputs, append_units_label, record)
+            print(filtered_record)
+            print(returned_record)
+
+            self.assertEqual(filtered_record, returned_record)
+
+    def test_altitude_foot(self):
+        site_dict = {
+            'server_url' : random_string(),
+            'topics': {
+                'weather/loop': create_topic(),
+                'weather': create_topic(aggregation='individual')
+            },
+            'manager_dict': {
+                random_string(): random_string()
+            }
+        }
+        site_config = configobj.ConfigObj(site_dict)
+
+        upload_all = True
+        templates = {}
+        inputs_dict = {}
+        inputs = configobj.ConfigObj(inputs_dict)
+        append_units_label = False
+        record = {
+            'usUnits': 1.0,
+            'latitude': round(random.uniform(-90, 90), 6),
+            'longitude': round(random.uniform(-180, 180), 6),
+            #'altitude_meter': round(random.uniform(0, 2000), 6),
+            'altitude_foot': round(random.uniform(0, 2000), 6)
+        }
+
+        position = "%f,%f,%f" % (record['latitude'], record['longitude'], record['altitude_foot'])
+        print(position)
+        returned_record = copy.deepcopy(record)
+        returned_record['latitude'] = str(returned_record['latitude'])
+        returned_record['longitude'] = str(returned_record['longitude'])
+        returned_record['altitude_foot'] = str(returned_record['altitude_foot'])
+        returned_record['usUnits'] = str(returned_record['usUnits'])
+        returned_record['position'] = str(position)
+
+        with mock.patch('weewx.units') as mock_units:
+            mock_units.getStandardUnitType.side_effect = self.getStandardUnitType_return_value
+            mock_units.convert.side_effect = self.convert_return_value
+            SUT = MQTTThread(None, **site_config)
+
+            filtered_record = SUT.filter_data(upload_all, templates, inputs, append_units_label, record)
+            print(filtered_record)
+            print(returned_record)
+
+            self.assertEqual(filtered_record, returned_record)
 
 if __name__ == '__main__':
     #test_suite = unittest.TestSuite()
