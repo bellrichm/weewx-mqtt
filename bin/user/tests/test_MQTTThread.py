@@ -1,6 +1,7 @@
 # pylint: disable=missing-docstring, invalid-name, line-too-long, dangerous-default-value
 import copy
 import random
+import socket
 import ssl
 import string
 
@@ -10,6 +11,8 @@ import mock
 import configobj
 
 import paho.mqtt.client as mqtt
+
+import weewx.restx
 
 from user.mqtt import MQTTThread
 
@@ -510,12 +513,26 @@ class TestProcessRecord(unittest.TestCase):
     def __init__(self, *args, **kwargs):
         super(TestProcessRecord, self).__init__(*args, **kwargs)
         self.client_connection = None
+        self.client_publish = None
         self.connection_tries = 0
         self.max_connection_tries = random.randint(1, 3)
 
     def reset_connection_error(self, *args, **kwargs): # match signature pylint: disable=unused-argument
         if self.connection_tries >= self.max_connection_tries:
             self.client_connection.side_effect = mock.Mock(side_effect=None)
+        self.connection_tries += 1
+        return mock.DEFAULT
+
+    def reset_publish_return_value(self, *args, **kwargs): # match signature pylint: disable=unused-argument
+        if self.connection_tries >= self.max_connection_tries:
+            self.client_publish.return_value = [mqtt.MQTT_ERR_SUCCESS, None]
+        self.connection_tries += 1
+        return mock.DEFAULT
+
+    def reset_publish_side_effect(self, *args, **kwargs): # match signature pylint: disable=unused-argument
+        if self.connection_tries >= self.max_connection_tries:
+            #self.client_publish.side_effect = mock.Mock(side_effect=None)
+            self.client_publish.side_effect = None
         self.connection_tries += 1
         return mock.DEFAULT
 
@@ -613,9 +630,6 @@ class TestProcessRecord(unittest.TestCase):
 
         record = {}
 
-        exception = ConnectionRefusedError("Connect exception.")
-        self.connection_tries = 0
-
         with mock.patch('paho.mqtt.client.Client') as mock_client:
             with mock.patch('user.mqtt.time') as mock_time:
                 with mock.patch('user.mqtt.MQTTThread.get_record'):
@@ -628,7 +642,198 @@ class TestProcessRecord(unittest.TestCase):
                         SUT.process_record(record, mock_manager)
 
                         self.assertEqual(mock_client.connect.call_count, 1)
-                        self.assertEqual(mock_time.sleep.call_count, 0)                      
+                        self.assertEqual(mock_time.sleep.call_count, 0)
+
+    def test_publish_error_unknown(self):
+        mock_manager = mock.Mock()
+        max_tries = random.randint(4, 6)
+        site_dict = {
+            'server_url' : 'mqtt://username:password@localhost:1883/',
+            'max_tries': max_tries,
+            'topics': {
+                'weather/loop': create_topic(binding='loop')
+            },
+            'manager_dict': {
+                random_string(): random_string()
+            }
+        }
+        site_dict['topics']['weather/loop']['unit_system'] = 'US'
+        site_dict['persist_connection'] = True
+        site_config = configobj.ConfigObj(site_dict)
+
+        record = {}
+
+        with mock.patch('paho.mqtt.client.Client') as mock_client:
+            with mock.patch('user.mqtt.time') as mock_time:
+                with mock.patch('user.mqtt.MQTTThread.get_record'):
+                    with mock.patch('weewx.units'):
+                        mock_client.return_value = mock_client
+                        mock_client.publish.return_value = [-1, None]
+
+                        SUT = MQTTThread(None, **site_config)
+
+                        with self.assertRaises(weewx.restx.FailedPost) as error:
+                            SUT.process_record(record, mock_manager)
+
+                        self.assertEqual(len(error.exception.args), 1)
+                        self.assertEqual(error.exception.args[0], "Failed upload after %d tries" % (max_tries,))
+                        #self.assertEqual(mock_client.connect.call_count, max_tries)
+                        self.assertEqual(mock_time.sleep.call_count, max_tries)
+
+    def test_publish_connection_fails(self):
+        mock_manager = mock.Mock()
+        max_tries = random.randint(4, 6)
+        site_dict = {
+            'server_url' : 'mqtt://username:password@localhost:1883/',
+            'max_tries': max_tries,
+            'topics': {
+                'weather/loop': create_topic(binding='loop')
+            },
+            'manager_dict': {
+                random_string(): random_string()
+            }
+        }
+        site_dict['topics']['weather/loop']['unit_system'] = 'US'
+        site_dict['persist_connection'] = True
+        site_config = configobj.ConfigObj(site_dict)
+
+        record = {}
+
+        exception = ConnectionRefusedError("Connect exception.")
+
+        with mock.patch('paho.mqtt.client.Client') as mock_client:
+            with mock.patch('user.mqtt.time') as mock_time:
+                with mock.patch('user.mqtt.MQTTThread.get_record'):
+                    with mock.patch('weewx.units'):
+                        mock_client.return_value = mock_client
+                        mock_client.publish.return_value = [mqtt.MQTT_ERR_NO_CONN, None]
+
+                        SUT = MQTTThread(None, **site_config)
+
+                        mock_client.connect.side_effect = mock.Mock(side_effect=exception)
+                        with self.assertRaises(weewx.restx.FailedPost) as error:
+                            SUT.process_record(record, mock_manager)
+
+                        self.assertEqual(len(error.exception.args), 1)
+                        self.assertEqual(error.exception.args[0], "Failed upload after %d tries" % (max_tries,))
+                        #self.assertEqual(mock_client.connect.call_count, max_tries)
+                        self.assertEqual(mock_time.sleep.call_count, max_tries)
+
+    def test_publish_connection_recovers(self):
+        mock_manager = mock.Mock()
+        max_tries = random.randint(4, 6)
+        site_dict = {
+            'server_url' : 'mqtt://username:password@localhost:1883/',
+            'max_tries': max_tries,
+            'topics': {
+                'weather/loop': create_topic(binding='loop')
+            },
+            'manager_dict': {
+                random_string(): random_string()
+            }
+        }
+        site_dict['topics']['weather/loop']['unit_system'] = 'US'
+        site_dict['persist_connection'] = True
+        site_config = configobj.ConfigObj(site_dict)
+
+        record = {}
+
+        exception = ConnectionRefusedError("Connect exception.")
+        self.connection_tries = 0
+
+        with mock.patch('paho.mqtt.client.Client') as mock_client:
+            with mock.patch('user.mqtt.time') as mock_time:
+                with mock.patch('user.mqtt.MQTTThread.get_record'):
+                    with mock.patch('weewx.units'):
+                        mock_client.return_value = mock_client
+                        mock_client.publish.return_value = [mqtt.MQTT_ERR_NO_CONN, None]
+                        self.client_publish = mock_client.publish
+                        mock_time.sleep.side_effect = self.reset_publish_return_value
+
+                        SUT = MQTTThread(None, **site_config)
+
+                        mock_client.connect.side_effect = mock.Mock(side_effect=exception)
+
+                        SUT.process_record(record, mock_manager)
+
+                        self.assertEqual(mock_client.connect.call_count, self.connection_tries + 1)
+                        self.assertEqual(mock_time.sleep.call_count, self.connection_tries)
+
+    def test_publish_error(self):
+        mock_manager = mock.Mock()
+        max_tries = random.randint(4, 6)
+        site_dict = {
+            'server_url' : 'mqtt://username:password@localhost:1883/',
+            'max_tries': max_tries,
+            'topics': {
+                'weather/loop': create_topic(binding='loop')
+            },
+            'manager_dict': {
+                random_string(): random_string()
+            }
+        }
+        site_dict['topics']['weather/loop']['unit_system'] = 'US'
+        site_dict['persist_connection'] = True
+        site_config = configobj.ConfigObj(site_dict)
+
+        record = {}
+
+        exception = socket.error("Socket exception.")
+
+        with mock.patch('paho.mqtt.client.Client') as mock_client:
+            with mock.patch('user.mqtt.time') as mock_time:
+                with mock.patch('user.mqtt.MQTTThread.get_record'):
+                    with mock.patch('weewx.units'):
+                        mock_client.return_value = mock_client
+                        mock_client.publish.side_effect = mock.Mock(side_effect=exception)
+
+                        SUT = MQTTThread(None, **site_config)
+
+                        with self.assertRaises(weewx.restx.FailedPost) as error:
+                            SUT.process_record(record, mock_manager)
+
+                        self.assertEqual(len(error.exception.args), 1)
+                        self.assertEqual(error.exception.args[0], "Failed upload after %d tries" % (max_tries,))
+                        #self.assertEqual(mock_client.connect.call_count, max_tries)
+                        self.assertEqual(mock_time.sleep.call_count, max_tries)
+
+    def test_publish_recovers(self):
+        mock_manager = mock.Mock()
+        max_tries = random.randint(4, 6)
+        site_dict = {
+            'server_url' : 'mqtt://username:password@localhost:1883/',
+            'max_tries': max_tries,
+            'topics': {
+                'weather/loop': create_topic(binding='loop')
+            },
+            'manager_dict': {
+                random_string(): random_string()
+            }
+        }
+        site_dict['topics']['weather/loop']['unit_system'] = 'US'
+        site_dict['persist_connection'] = True
+        site_config = configobj.ConfigObj(site_dict)
+
+        record = {}
+
+        exception = socket.error("Socket exception.")
+
+        with mock.patch('paho.mqtt.client.Client') as mock_client:
+            with mock.patch('user.mqtt.time') as mock_time:
+                with mock.patch('user.mqtt.MQTTThread.get_record'):
+                    with mock.patch('weewx.units'):
+                        mock_client.return_value = mock_client
+                        mock_client.publish.return_value = [mqtt.MQTT_ERR_SUCCESS, None]
+                        mock_client.publish.side_effect = mock.Mock(side_effect=exception)
+                        self.client_publish = mock_client.publish
+                        mock_time.sleep.side_effect = self.reset_publish_side_effect
+
+                        SUT = MQTTThread(None, **site_config)
+
+                        SUT.process_record(record, mock_manager)
+
+                        #self.assertEqual(mock_client.connect.call_count, self.connection_tries + 1)
+                        self.assertEqual(mock_time.sleep.call_count, self.connection_tries)
 
 if __name__ == '__main__':
     #test_suite = unittest.TestSuite()
