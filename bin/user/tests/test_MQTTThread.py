@@ -250,22 +250,13 @@ class TestFilterData(unittest.TestCase):
             }
         }
         inputs = configobj.ConfigObj(inputs_dict)
-        append_units_label = True
         append_units_label = False
-        #observation1 = round(random.uniform(1, 100), 10)
         observation2 = round(random.uniform(1, 100), 10)
-        #observation3 = round(random.uniform(1, 100), 10)
         observation4 = round(random.uniform(1, 100), 10)
         record = {
             'usUnits': 1.0,
-            #self.observation1: observation1,
             self.observation2: observation2,
-            #self.observation3: observation3,
-            self.observation4: observation4,
-            #'latitude': round(random.uniform(-90, 90), 10),
-            #'longitude': round(random.uniform(-180, 180), 10),
-            #'altitude_meter': round(random.uniform(0, 2000), 10),
-            #'altitude_foot': round(random.uniform(0, 2000), 10)
+            self.observation4: observation4
         }
 
         returned_record = copy.deepcopy(record)
@@ -284,16 +275,9 @@ class TestFilterData(unittest.TestCase):
             SUT = MQTTThread(None, **site_config)
 
             filtered_record = SUT.filter_data(upload_all, templates, inputs, append_units_label, record)
-            print(filtered_record)
-            print(returned_record)
-            #print(inputs_dict)
-            #print(templates)
-            #print(returned_templates)
 
             self.assertEqual(templates, returned_templates)
             self.assertEqual(filtered_record, returned_record)
-
-            print("done")
 
     def test_upload_all_false(self):
         site_dict = {
@@ -321,22 +305,13 @@ class TestFilterData(unittest.TestCase):
             }
         }
         inputs = configobj.ConfigObj(inputs_dict)
-        append_units_label = True
         append_units_label = False
-        #observation1 = round(random.uniform(1, 100), 10)
         observation2 = round(random.uniform(1, 100), 10)
-        #observation3 = round(random.uniform(1, 100), 10)
         observation4 = round(random.uniform(1, 100), 10)
         record = {
             'usUnits': 1.0,
-            #self.observation1: observation1,
             self.observation2: observation2,
-            #self.observation3: observation3,
-            self.observation4: observation4,
-            #'latitude': round(random.uniform(-90, 90), 10),
-            #'longitude': round(random.uniform(-180, 180), 10),
-            #'altitude_meter': round(random.uniform(0, 2000), 10),
-            #'altitude_foot': round(random.uniform(0, 2000), 10)
+            self.observation4: observation4
         }
 
         returned_record = {}
@@ -350,16 +325,9 @@ class TestFilterData(unittest.TestCase):
             SUT = MQTTThread(None, **site_config)
 
             filtered_record = SUT.filter_data(upload_all, templates, inputs, append_units_label, record)
-            #print(filtered_record)
-            #print(returned_record)
-            #print(inputs_dict)
-            print(templates)
-            print(returned_templates)
 
             self.assertEqual(templates, returned_templates)
             self.assertEqual(filtered_record, returned_record)
-
-            print("done")
 
     def test_unit_conversion(self):
         site_dict = {
@@ -387,22 +355,13 @@ class TestFilterData(unittest.TestCase):
             }
         }
         inputs = configobj.ConfigObj(inputs_dict)
-        append_units_label = True
         append_units_label = False
         observation1 = round(random.uniform(1, 100), 10)
         observation2 = round(random.uniform(1, 100), 10)
-        #observation3 = round(random.uniform(1, 100), 10)
-        #observation4 = round(random.uniform(1, 100), 10)
         record = {
             'usUnits': 1.0,
             self.observation1: observation1,
             self.observation2: observation2,
-            #self.observation3: observation3,
-            #self.observation4: observation4,
-            #'latitude': round(random.uniform(-90, 90), 10),
-            #'longitude': round(random.uniform(-180, 180), 10),
-            #'altitude_meter': round(random.uniform(0, 2000), 10),
-            #'altitude_foot': round(random.uniform(0, 2000), 10)
         }
 
         returned_record = {}
@@ -417,16 +376,9 @@ class TestFilterData(unittest.TestCase):
             SUT = MQTTThread(None, **site_config)
 
             filtered_record = SUT.filter_data(upload_all, templates, inputs, append_units_label, record)
-            print(filtered_record)
-            print(returned_record)
-            #print(inputs_dict)
-            #print(templates)
-            #print(returned_templates)
 
             self.assertEqual(templates, returned_templates)
             self.assertEqual(filtered_record, returned_record)
-
-            print("done")
 
     def test_longitude_latitude(self):
         site_dict = {
@@ -450,12 +402,9 @@ class TestFilterData(unittest.TestCase):
             'usUnits': 1.0,
             'latitude': round(random.uniform(-90, 90), 6),
             'longitude': round(random.uniform(-180, 180), 6),
-            #'altitude_meter': round(random.uniform(0, 2000), 6),
-            #'altitude_foot': round(random.uniform(0, 2000), 6)
         }
 
         position = "%f,%f" % (record['latitude'], record['longitude'])
-        print(position)
         returned_record = copy.deepcopy(record)
         returned_record['latitude'] = str(returned_record['latitude'])
         returned_record['longitude'] = str(returned_record['longitude'])
@@ -468,12 +417,8 @@ class TestFilterData(unittest.TestCase):
             SUT = MQTTThread(None, **site_config)
 
             filtered_record = SUT.filter_data(upload_all, templates, inputs, append_units_label, record)
-            print(filtered_record)
-            print(returned_record)
 
             self.assertEqual(filtered_record, returned_record)
-
-            print("done")
 
     def test_altitude_meter(self):
         site_dict = {
@@ -497,12 +442,10 @@ class TestFilterData(unittest.TestCase):
             'usUnits': 1.0,
             'latitude': round(random.uniform(-90, 90), 6),
             'longitude': round(random.uniform(-180, 180), 6),
-            'altitude_meter': round(random.uniform(0, 2000), 6),
-            #'altitude_foot': round(random.uniform(0, 2000), 6)
+            'altitude_meter': round(random.uniform(0, 2000), 6)
         }
 
         position = "%f,%f,%f" % (record['latitude'], record['longitude'], record['altitude_meter'])
-        print(position)
         returned_record = copy.deepcopy(record)
         returned_record['latitude'] = str(returned_record['latitude'])
         returned_record['longitude'] = str(returned_record['longitude'])
@@ -516,8 +459,6 @@ class TestFilterData(unittest.TestCase):
             SUT = MQTTThread(None, **site_config)
 
             filtered_record = SUT.filter_data(upload_all, templates, inputs, append_units_label, record)
-            print(filtered_record)
-            print(returned_record)
 
             self.assertEqual(filtered_record, returned_record)
 
@@ -543,12 +484,10 @@ class TestFilterData(unittest.TestCase):
             'usUnits': 1.0,
             'latitude': round(random.uniform(-90, 90), 6),
             'longitude': round(random.uniform(-180, 180), 6),
-            #'altitude_meter': round(random.uniform(0, 2000), 6),
             'altitude_foot': round(random.uniform(0, 2000), 6)
         }
 
         position = "%f,%f,%f" % (record['latitude'], record['longitude'], record['altitude_foot'])
-        print(position)
         returned_record = copy.deepcopy(record)
         returned_record['latitude'] = str(returned_record['latitude'])
         returned_record['longitude'] = str(returned_record['longitude'])
@@ -562,8 +501,6 @@ class TestFilterData(unittest.TestCase):
             SUT = MQTTThread(None, **site_config)
 
             filtered_record = SUT.filter_data(upload_all, templates, inputs, append_units_label, record)
-            print(filtered_record)
-            print(returned_record)
 
             self.assertEqual(filtered_record, returned_record)
 
