@@ -677,14 +677,13 @@ class MQTTThread(weewx.restx.RESTThread):
                 if res == mqtt.MQTT_ERR_SUCCESS:
                     break
                 if res == mqtt.MQTT_ERR_NO_CONN:
-                    logerr("Publish failed for %s: %s. Attempting to reconnect." % (topic, res))
+                    logdbg("Publish failed for %s: with rc %s. Attempt %i of %i to reconnect." % (topic, res, _count + 1, self.max_tries))
                     client = self._connect()
                     client.loop_start()
                     if self.persist_connection:
                         self.client = client
                 else:
-                    logerr("Publish failed for %s: %s. Skipping." % (topic, res))
-                    break
+                    raise weewx.restx.FailedPost("Publish failed for %s: %s." % (topic, res))
             except (socket.error, socket.timeout, socket.herror) as exception:
                 logdbg("Failed publish attempt %d: %s" % (_count+1, exception))
                 time.sleep(self.retry_wait)
