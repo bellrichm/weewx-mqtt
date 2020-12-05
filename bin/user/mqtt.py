@@ -4,6 +4,21 @@
 # pylint: disable=bad-option-value, useless-object-inheritance, super-with-arguments
 # pylint: enable=bad-option-value
 """
+IMPORTANT, READ THIS!
+This was forked from https://github.com/matthewwall/weewx-mqtt, version 0.23, 
+commit https://github.com/matthewwall/weewx-mqtt/commit/00e23e804126e107f2dd9553534ae14628bd3c0e
+
+At the time it was intended to be fully compatible but add some functionality I needed.
+Namely,
+1) The ability to publish to multiple topics.
+2) Create a connection at startup and persist it for all publishing.
+This resulted in the retry logic being a bit different for publishing failures. 
+
+The changes became large enough that pull request did not seem feasible, so this may diverge more in the future. 
+So, unless you realy need the function that has been added, it would be wise to look at using
+https://github.com/matthewwall/weewx-mqtt
+********************************************************************************************
+
 Upload data to MQTT server
 
 This service requires the python bindings for mqtt:
@@ -141,7 +156,7 @@ import weewx.restx
 import weewx.units
 from weeutil.weeutil import to_int, to_bool
 
-VERSION = "0.23"
+VERSION = "0.23-rmb00"
 
 if weewx.__version__ < "3":
     raise weewx.UnsupportedFeature("weewx 3 is required, found %s" %
