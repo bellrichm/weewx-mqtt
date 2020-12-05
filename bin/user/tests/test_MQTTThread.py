@@ -531,7 +531,6 @@ class TestProcessRecord(unittest.TestCase):
 
     def reset_publish_side_effect(self, *args, **kwargs): # match signature pylint: disable=unused-argument
         if self.connection_tries >= self.max_connection_tries:
-            #self.client_publish.side_effect = mock.Mock(side_effect=None)
             self.client_publish.side_effect = None
         self.connection_tries += 1
         return mock.DEFAULT
@@ -677,7 +676,7 @@ class TestProcessRecord(unittest.TestCase):
 
                         self.assertEqual(len(error.exception.args), 1)
                         self.assertEqual(error.exception.args[0], "Failed upload after %d tries" % (max_tries,))
-                        #self.assertEqual(mock_client.connect.call_count, max_tries)
+                        self.assertEqual(mock_client.publish.call_count, max_tries)
                         self.assertEqual(mock_time.sleep.call_count, max_tries)
 
     def test_publish_connection_fails(self):
@@ -716,7 +715,7 @@ class TestProcessRecord(unittest.TestCase):
 
                         self.assertEqual(len(error.exception.args), 1)
                         self.assertEqual(error.exception.args[0], "Failed upload after %d tries" % (max_tries,))
-                        #self.assertEqual(mock_client.connect.call_count, max_tries)
+                        self.assertEqual(mock_client.publish.call_count, max_tries)
                         self.assertEqual(mock_time.sleep.call_count, max_tries)
 
     def test_publish_connection_recovers(self):
@@ -794,7 +793,7 @@ class TestProcessRecord(unittest.TestCase):
 
                         self.assertEqual(len(error.exception.args), 1)
                         self.assertEqual(error.exception.args[0], "Failed upload after %d tries" % (max_tries,))
-                        #self.assertEqual(mock_client.connect.call_count, max_tries)
+                        self.assertEqual(mock_client.publish.call_count, max_tries)
                         self.assertEqual(mock_time.sleep.call_count, max_tries)
 
     def test_publish_recovers(self):
@@ -832,7 +831,7 @@ class TestProcessRecord(unittest.TestCase):
 
                         SUT.process_record(record, mock_manager)
 
-                        #self.assertEqual(mock_client.connect.call_count, self.connection_tries + 1)
+                        self.assertEqual(mock_client.publish.call_count, self.connection_tries + 1)
                         self.assertEqual(mock_time.sleep.call_count, self.connection_tries)
 
 if __name__ == '__main__':
