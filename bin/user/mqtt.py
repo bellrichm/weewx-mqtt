@@ -5,16 +5,16 @@
 # pylint: enable=bad-option-value
 """
 IMPORTANT, READ THIS!
-This was forked from https://github.com/matthewwall/weewx-mqtt, version 0.23, 
+This was forked from https://github.com/matthewwall/weewx-mqtt, version 0.23,
 commit https://github.com/matthewwall/weewx-mqtt/commit/00e23e804126e107f2dd9553534ae14628bd3c0e
 
 At the time it was intended to be fully compatible but add some functionality I needed.
 Namely,
 1) The ability to publish to multiple topics.
 2) Create a connection at startup and persist it for all publishing.
-This resulted in the retry logic being a bit different for publishing failures. 
+This resulted in the retry logic being a bit different for publishing failures.
 
-The changes became large enough that pull request did not seem feasible, so this may diverge more in the future. 
+The changes became large enough that pull request did not seem feasible, so this may diverge more.
 So, unless you realy need the function that has been added, it would be wise to look at using
 https://github.com/matthewwall/weewx-mqtt
 ********************************************************************************************
@@ -692,7 +692,8 @@ class MQTTThread(weewx.restx.RESTThread):
                 if res == mqtt.MQTT_ERR_SUCCESS:
                     break
                 if res == mqtt.MQTT_ERR_NO_CONN:
-                    logdbg("Publish failed for %s: with rc %s. Attempt %i of %i to reconnect." % (topic, res, _count + 1, self.max_tries))
+                    logdbg("Publish failed for %s: with rc %s. Attempt %i of %i to reconnect." %
+                           (topic, res, _count + 1, self.max_tries))
                     client = self._connect()
                     client.loop_start()
                     if self.persist_connection:
