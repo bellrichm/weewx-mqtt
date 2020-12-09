@@ -23,6 +23,7 @@ def create_topic(skip_upload=False,
                  binding='archive',
                  aggregation='aggregate',
                  append_units_label=True,
+                 conversion_type='string',
                  augment_record=True,
                  upload_all=True,
                  retain=False,
@@ -34,6 +35,7 @@ def create_topic(skip_upload=False,
         'binding': binding,
         'aggregation': aggregation,
         'append_units_label': append_units_label,
+        'conversion_type':conversion_type,
         'augment_record': augment_record,
         'upload_all': upload_all,
         'retain': retain,
@@ -279,7 +281,7 @@ class TestFilterData(unittest.TestCase):
             mock_units.convert.side_effect = self.convert_return_value
             SUT = MQTTThread(None, **site_config)
 
-            filtered_record = SUT.filter_data(upload_all, templates, inputs, append_units_label, record)
+            filtered_record = SUT.filter_data(upload_all, templates, inputs, append_units_label, 'string', record)
 
             self.assertEqual(templates, returned_templates)
             self.assertEqual(filtered_record, returned_record)
@@ -329,7 +331,7 @@ class TestFilterData(unittest.TestCase):
             mock_units.convert.side_effect = self.convert_return_value
             SUT = MQTTThread(None, **site_config)
 
-            filtered_record = SUT.filter_data(upload_all, templates, inputs, append_units_label, record)
+            filtered_record = SUT.filter_data(upload_all, templates, inputs, append_units_label, 'string', record)
 
             self.assertEqual(templates, returned_templates)
             self.assertEqual(filtered_record, returned_record)
@@ -380,7 +382,7 @@ class TestFilterData(unittest.TestCase):
             mock_units.convert.side_effect = self.convert_return_value
             SUT = MQTTThread(None, **site_config)
 
-            filtered_record = SUT.filter_data(upload_all, templates, inputs, append_units_label, record)
+            filtered_record = SUT.filter_data(upload_all, templates, inputs, append_units_label, 'string', record)
 
             self.assertEqual(templates, returned_templates)
             self.assertEqual(filtered_record, returned_record)
@@ -421,7 +423,7 @@ class TestFilterData(unittest.TestCase):
             mock_units.convert.side_effect = self.convert_return_value
             SUT = MQTTThread(None, **site_config)
 
-            filtered_record = SUT.filter_data(upload_all, templates, inputs, append_units_label, record)
+            filtered_record = SUT.filter_data(upload_all, templates, inputs, append_units_label, 'string', record)
 
             self.assertEqual(filtered_record, returned_record)
 
@@ -463,7 +465,7 @@ class TestFilterData(unittest.TestCase):
             mock_units.convert.side_effect = self.convert_return_value
             SUT = MQTTThread(None, **site_config)
 
-            filtered_record = SUT.filter_data(upload_all, templates, inputs, append_units_label, record)
+            filtered_record = SUT.filter_data(upload_all, templates, inputs, append_units_label, 'string', record)
 
             self.assertEqual(filtered_record, returned_record)
 
@@ -505,7 +507,7 @@ class TestFilterData(unittest.TestCase):
             mock_units.convert.side_effect = self.convert_return_value
             SUT = MQTTThread(None, **site_config)
 
-            filtered_record = SUT.filter_data(upload_all, templates, inputs, append_units_label, record)
+            filtered_record = SUT.filter_data(upload_all, templates, inputs, append_units_label, 'string', record)
 
             self.assertEqual(filtered_record, returned_record)
 

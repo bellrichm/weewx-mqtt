@@ -21,6 +21,7 @@ class TestInitialization(unittest.TestCase):
                      binding='archive',
                      aggregation='aggregate',
                      append_units_label=True,
+                     conversion_type='string',
                      augment_record=True,
                      upload_all=True,
                      retain=False,
@@ -32,6 +33,7 @@ class TestInitialization(unittest.TestCase):
             'binding': binding,
             'aggregation': aggregation,
             'append_units_label': append_units_label,
+            'conversion_type': conversion_type,
             'augment_record': augment_record,
             'upload_all': upload_all,
             'retain': retain,
@@ -1142,7 +1144,7 @@ class TestInitialization(unittest.TestCase):
         }
 
         topics = {
-            topic: self.create_topic(aggregation='aggregate ,individual')
+            topic: self.create_topic(aggregation='aggregate ,individual', inputs=inputs)
         }
 
         site_dict = copy.deepcopy(config_dict['StdRESTful']['MQTT'])

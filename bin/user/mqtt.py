@@ -347,6 +347,8 @@ class MQTT(weewx.restx.StdRESTbase):
             del site_dict['skip_upload']
         if 'obs_to_upload' in site_dict:
             del site_dict['obs_to_upload']
+        if 'conversion_type' in site_dict:
+            del site_dict['conversion_type']
         if 'augment_record' in site_dict:
             del site_dict['augment_record']
         if 'inputs' in site_dict:
@@ -436,6 +438,10 @@ class MQTT(weewx.restx.StdRESTbase):
                                                         .get('append_units_label',
                                                              site_dict.get('append_units_label',
                                                                            True)))
+        topic_dict['conversion_type'] = site_dict['topics'][topic] \
+                                                        .get('conversion_type',
+                                                             site_dict.get('conversion_type',
+                                                                           'string'))
         topic_dict['augment_record'] = to_bool(site_dict['topics'][topic] \
                                                     .get('augment_record',
                                                          site_dict.get('augment_record',
@@ -571,7 +577,7 @@ class MQTTThread(weewx.restx.RESTThread):
         pass
 
     @staticmethod
-    def filter_data(upload_all, templates, inputs, append_units_label, record):
+    def filter_data(upload_all, templates, inputs, append_units_label, conversion_type, record):
         """ Filter and format data for publishing. """
         # pylint: disable=invalid-name
         # if uploading everything, we must check the upload variables list
@@ -606,7 +612,12 @@ class MQTTThread(weewx.restx.RESTThread):
                         record['usUnits'], k)
                     from_t = (v, from_unit, from_group)
                     v = weewx.units.convert(from_t, to_units)[0]
-                s = fmt % v
+                if conversion_type == 'integer':
+                    s = int(v)
+                else:
+                    s = fmt % v
+                    if conversion_type == 'float':
+                        s = float(s)
                 data[name] = s
             except (TypeError, ValueError):
                 pass
@@ -664,6 +675,7 @@ class MQTTThread(weewx.restx.RESTThread):
                                 self.topics[topic]['templates'],
                                 self.topics[topic]['inputs'],
                                 self.topics[topic]['append_units_label'],
+                                self.topics[topic]['conversion_type'],
                                 updated_record)
         return data
 
