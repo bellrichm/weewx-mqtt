@@ -454,7 +454,7 @@ class MQTT(weewx.restx.StdRESTbase):
                                                                                     False)))
         topic_dict['qos'] = to_int(site_dict['topics'][topic].get('qos', site_dict.get('qos', 0)))
         topic_dict['inputs'] = dict(site_dict['topics'][topic].get('inputs',
-                                                                   site_dict).get('inputs', {}))
+                                                                   site_dict.get('inputs', {})))
         topic_dict['templates'] = dict()
 
         loginf("for %s binding to %s" % (topic, topic_dict['binding']))
