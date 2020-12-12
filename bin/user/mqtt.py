@@ -683,7 +683,7 @@ class MQTTThread(weewx.restx.RESTThread):
         if self.topics[topic]['aggregation'].find('aggregate') >= 0:
             self._publish_data(client,
                                topic,
-                               data,
+                               json.dumps(data),
                                self.topics[topic]['qos'],
                                self.topics[topic]['retain'])
         if self.topics[topic]['aggregation'].find('individual') >= 0:
@@ -699,7 +699,7 @@ class MQTTThread(weewx.restx.RESTThread):
         import socket
         for _count in range(self.max_tries):
             try:
-                (res, mid) = client.publish(topic, json.dumps(data), # pylint: disable=unused-variable
+                (res, mid) = client.publish(topic, data, # pylint: disable=unused-variable
                                             retain=retain, qos=qos)
                 if res == mqtt.MQTT_ERR_SUCCESS:
                     break
