@@ -154,7 +154,7 @@ except (ImportError, AttributeError):
 import weewx
 import weewx.restx
 import weewx.units
-from weeutil.weeutil import to_int, to_bool
+from weeutil.weeutil import to_int, to_bool, to_float
 
 VERSION = "0.23-rmb00"
 
@@ -613,11 +613,11 @@ class MQTTThread(weewx.restx.RESTThread):
                     from_t = (v, from_unit, from_group)
                     v = weewx.units.convert(from_t, to_units)[0]
                 if conversion_type == 'integer':
-                    s = int(v)
+                    s = to_int(v)
                 else:
                     s = fmt % v
                     if conversion_type == 'float':
-                        s = float(s)
+                        s = to_float(s)
                 data[name] = s
             except (TypeError, ValueError):
                 pass
