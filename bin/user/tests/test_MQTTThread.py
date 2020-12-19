@@ -21,7 +21,7 @@ def random_string():
 
 def create_topic(skip_upload=False,
                  binding='archive',
-                 aggregation='aggregate',
+                 payload_type='json',
                  append_units_label=True,
                  conversion_type='string',
                  augment_record=True,
@@ -33,7 +33,7 @@ def create_topic(skip_upload=False,
     return {
         'skip_upload': skip_upload,
         'binding': binding,
-        'aggregation': aggregation,
+        'type': payload_type,
         'append_units_label': append_units_label,
         'conversion_type':conversion_type,
         'augment_record': augment_record,
@@ -50,7 +50,7 @@ class TestTLSInitialization(unittest.TestCase):
             'server_url' : random_string,
             'topics': {
                 'weather/loop': create_topic(),
-                'weather': create_topic(aggregation='individual')
+                'weather': create_topic(payload_type='individual')
             },
             'manager_dict': {
                 random_string(): random_string()
@@ -69,7 +69,7 @@ class TestTLSInitialization(unittest.TestCase):
             'server_url' : random_string,
             'topics': {
                 'weather/loop': create_topic(),
-                'weather': create_topic(aggregation='individual')
+                'weather': create_topic(payload_type='individual')
             },
             'manager_dict': {
                 random_string(): random_string()
@@ -89,7 +89,7 @@ class TestTLSInitialization(unittest.TestCase):
             'server_url' : random_string,
             'topics': {
                 'weather/loop': create_topic(),
-                'weather': create_topic(aggregation='individual')
+                'weather': create_topic(payload_type='individual')
             },
             'manager_dict': {
                 random_string(): random_string()
@@ -124,7 +124,7 @@ class TestPersistentConnection(unittest.TestCase):
             'server_url' : 'mqtt://username:password@localhost:1883/',
             'topics': {
                 'weather/loop': create_topic(),
-                'weather': create_topic(aggregation='individual')
+                'weather': create_topic(payload_type='individual')
             },
             'manager_dict': {
                 random_string(): random_string()
@@ -153,7 +153,7 @@ class TestPersistentConnection(unittest.TestCase):
             'server_url' : 'mqtt://username:password@localhost:1883/',
             'topics': {
                 'weather/loop': create_topic(),
-                'weather': create_topic(aggregation='individual')
+                'weather': create_topic(payload_type='individual')
             },
             'manager_dict': {
                 random_string(): random_string()
@@ -183,7 +183,7 @@ class TestPersistentConnection(unittest.TestCase):
             'server_url' : 'mqtt://username:password@localhost:1883/',
             'topics': {
                 'weather/loop': create_topic(),
-                'weather': create_topic(aggregation='individual')
+                'weather': create_topic(payload_type='individual')
             },
             'manager_dict': {
                 random_string(): random_string()
@@ -230,7 +230,7 @@ class TestFilterData(unittest.TestCase):
             'server_url' : random_string(),
             'topics': {
                 'weather/loop': create_topic(),
-                'weather': create_topic(aggregation='individual')
+                'weather': create_topic(payload_type='individual')
             },
             'manager_dict': {
                 random_string(): random_string()
@@ -291,7 +291,7 @@ class TestFilterData(unittest.TestCase):
             'server_url' : random_string(),
             'topics': {
                 'weather/loop': create_topic(),
-                'weather': create_topic(aggregation='individual')
+                'weather': create_topic(payload_type='individual')
             },
             'manager_dict': {
                 random_string(): random_string()
@@ -341,7 +341,7 @@ class TestFilterData(unittest.TestCase):
             'server_url' : random_string(),
             'topics': {
                 'weather/loop': create_topic(),
-                'weather': create_topic(aggregation='individual')
+                'weather': create_topic(payload_type='individual')
             },
             'manager_dict': {
                 random_string(): random_string()
@@ -392,7 +392,7 @@ class TestFilterData(unittest.TestCase):
             'server_url' : random_string(),
             'topics': {
                 'weather/loop': create_topic(),
-                'weather': create_topic(aggregation='individual')
+                'weather': create_topic(payload_type='individual')
             },
             'manager_dict': {
                 random_string(): random_string()
@@ -432,7 +432,7 @@ class TestFilterData(unittest.TestCase):
             'server_url' : random_string(),
             'topics': {
                 'weather/loop': create_topic(),
-                'weather': create_topic(aggregation='individual')
+                'weather': create_topic(payload_type='individual')
             },
             'manager_dict': {
                 random_string(): random_string()
@@ -474,7 +474,7 @@ class TestFilterData(unittest.TestCase):
             'server_url' : random_string(),
             'topics': {
                 'weather/loop': create_topic(),
-                'weather': create_topic(aggregation='individual')
+                'weather': create_topic(payload_type='individual')
             },
             'manager_dict': {
                 random_string(): random_string()
@@ -545,7 +545,7 @@ class TestProcessRecord(unittest.TestCase):
             'max_tries': max_tries,
             'topics': {
                 'weather/loop': create_topic(),
-                'weather': create_topic(aggregation='individual')
+                'weather': create_topic(payload_type='individual')
             },
             'manager_dict': {
                 random_string(): random_string()
@@ -579,7 +579,7 @@ class TestProcessRecord(unittest.TestCase):
             'max_tries': max_tries,
             'topics': {
                 'weather/loop': create_topic(binding='loop'),
-                'weather': create_topic(aggregation='individual', binding='loop')
+                'weather': create_topic(payload_type='individual', binding='loop')
             },
             'manager_dict': {
                 random_string(): random_string()
@@ -619,7 +619,7 @@ class TestProcessRecord(unittest.TestCase):
             'max_tries': max_tries,
             'topics': {
                 'weather/loop': create_topic(binding='loop'),
-                'weather': create_topic(aggregation='individual', binding='loop')
+                'weather': create_topic(payload_type='individual', binding='loop')
             },
             'manager_dict': {
                 random_string(): random_string()

@@ -1,4 +1,4 @@
-# pylint: disable=missing-docstring, invalid-name, line-too-long, dangerous-default-value
+# pylint: disable=missing-docstring, invalid-name, line-too-long, dangerous-default-value, too-many-lines
 import copy
 import random
 import string
@@ -19,7 +19,7 @@ class TestInitialization(unittest.TestCase):
     @staticmethod
     def create_topic(skip_upload=False,
                      binding='archive',
-                     aggregation='aggregate',
+                     payload_type='json',
                      append_units_label=True,
                      conversion_type='string',
                      augment_record=True,
@@ -31,7 +31,7 @@ class TestInitialization(unittest.TestCase):
         return {
             'skip_upload': skip_upload,
             'binding': binding,
-            'aggregation': aggregation,
+            'type': payload_type,
             'append_units_label': append_units_label,
             'conversion_type': conversion_type,
             'augment_record': augment_record,
@@ -61,7 +61,7 @@ class TestInitialization(unittest.TestCase):
 
         topics = {
             'weather/loop': self.create_topic(),
-            'weather': self.create_topic(aggregation='individual')
+            'weather': self.create_topic(payload_type='individual')
             }
 
         site_dict = copy.deepcopy(config_dict['StdRESTful']['MQTT'])
@@ -116,7 +116,7 @@ class TestInitialization(unittest.TestCase):
 
         topics = {
             topic + '/loop': self.create_topic(),
-            topic: self.create_topic(aggregation='individual')
+            topic: self.create_topic(payload_type='individual')
             }
 
         site_dict = copy.deepcopy(config_dict['StdRESTful']['MQTT'])
@@ -162,7 +162,7 @@ class TestInitialization(unittest.TestCase):
 
         topics = {
             'weather/loop': self.create_topic(binding='archive, loop'),
-            'weather': self.create_topic(aggregation='individual', binding='archive, loop')
+            'weather': self.create_topic(payload_type='individual', binding='archive, loop')
             }
 
         site_dict = copy.deepcopy(config_dict['StdRESTful']['MQTT'])
@@ -214,7 +214,7 @@ class TestInitialization(unittest.TestCase):
         }
 
         topics = {
-            'weather': self.create_topic(aggregation='individual')
+            'weather': self.create_topic(payload_type='individual')
             }
 
         site_dict = copy.deepcopy(config_dict['StdRESTful']['MQTT'])
@@ -260,7 +260,7 @@ class TestInitialization(unittest.TestCase):
 
         topics = {
             'weather/loop': self.create_topic(skip_upload=True),
-            'weather': self.create_topic(aggregation='individual', skip_upload=True)
+            'weather': self.create_topic(payload_type='individual', skip_upload=True)
             }
 
         site_dict = copy.deepcopy(config_dict['StdRESTful']['MQTT'])
@@ -306,7 +306,7 @@ class TestInitialization(unittest.TestCase):
 
         topics = {
             'weather/loop': self.create_topic(upload_all=False),
-            'weather': self.create_topic(aggregation='individual', upload_all=False)
+            'weather': self.create_topic(payload_type='individual', upload_all=False)
             }
 
         site_dict = copy.deepcopy(config_dict['StdRESTful']['MQTT'])
@@ -352,7 +352,7 @@ class TestInitialization(unittest.TestCase):
 
         topics = {
             'weather/loop': self.create_topic(append_units_label=False),
-            'weather': self.create_topic(aggregation='individual', append_units_label=False)
+            'weather': self.create_topic(payload_type='individual', append_units_label=False)
             }
 
         site_dict = copy.deepcopy(config_dict['StdRESTful']['MQTT'])
@@ -398,7 +398,7 @@ class TestInitialization(unittest.TestCase):
 
         topics = {
             'weather/loop': self.create_topic(retain=True),
-            'weather': self.create_topic(aggregation='individual', retain=True)
+            'weather': self.create_topic(payload_type='individual', retain=True)
             }
 
         site_dict = copy.deepcopy(config_dict['StdRESTful']['MQTT'])
@@ -441,7 +441,7 @@ class TestInitialization(unittest.TestCase):
 
         topics = {
             'weather/loop': self.create_topic(augment_record=False),
-            'weather': self.create_topic(aggregation='individual', augment_record=False)
+            'weather': self.create_topic(payload_type='individual', augment_record=False)
             }
 
         site_dict = copy.deepcopy(config_dict['StdRESTful']['MQTT'])
@@ -488,7 +488,7 @@ class TestInitialization(unittest.TestCase):
 
         topics = {
             'weather/loop': self.create_topic(qos=2),
-            'weather': self.create_topic(aggregation='individual', qos=2)
+            'weather': self.create_topic(payload_type='individual', qos=2)
             }
 
         site_dict = copy.deepcopy(config_dict['StdRESTful']['MQTT'])
@@ -534,7 +534,7 @@ class TestInitialization(unittest.TestCase):
 
         topics = {
             'weather/loop': self.create_topic(),
-            'weather': self.create_topic(aggregation='individual')
+            'weather': self.create_topic(payload_type='individual')
             }
         topics['weather/loop']['unit_system'] = 1
         topics['weather']['unit_system'] = 1
@@ -586,7 +586,7 @@ class TestInitialization(unittest.TestCase):
 
         topics = {
             'weather/loop': self.create_topic(inputs=inputs),
-            'weather': self.create_topic(aggregation='individual', inputs=inputs)
+            'weather': self.create_topic(payload_type='individual', inputs=inputs)
             }
 
         site_dict = copy.deepcopy(config_dict['StdRESTful']['MQTT'])
@@ -634,7 +634,7 @@ class TestInitialization(unittest.TestCase):
         }
 
         topics = {
-            topic: self.create_topic(aggregation='aggregate ,individual')
+            topic: self.create_topic()
             }
 
         site_dict = copy.deepcopy(config_dict['StdRESTful']['MQTT'])
@@ -684,7 +684,7 @@ class TestInitialization(unittest.TestCase):
         }
 
         topics = {
-            topic: self.create_topic(aggregation='aggregate ,individual', binding='archive, loop')
+            topic: self.create_topic(binding='archive, loop')
         }
 
         site_dict = copy.deepcopy(config_dict['StdRESTful']['MQTT'])
@@ -717,7 +717,7 @@ class TestInitialization(unittest.TestCase):
 
                                 mock_MQTTThread.assert_called_once_with(SUT.archive_queue, **site_config_final)
 
-    def test_topics_aggregation(self):
+    def test_topics_type_individual(self):
         mock_StdEngine = mock.Mock()
         server_url = random_string()
         topic = random_string()
@@ -728,7 +728,7 @@ class TestInitialization(unittest.TestCase):
                     'server_url': server_url,
                     'topics': {
                         topic: {
-                            'aggregation': 'individual'
+                            'type': 'individual'
                         }
                     }
                 }
@@ -741,7 +741,7 @@ class TestInitialization(unittest.TestCase):
         }
 
         topics = {
-            topic: self.create_topic(aggregation='individual')
+            topic: self.create_topic(payload_type='individual')
         }
 
         site_dict = copy.deepcopy(config_dict['StdRESTful']['MQTT'])
@@ -791,7 +791,7 @@ class TestInitialization(unittest.TestCase):
         }
 
         topics = {
-            topic: self.create_topic(aggregation='aggregate ,individual', skip_upload=True)
+            topic: self.create_topic(skip_upload=True)
         }
 
         site_dict = copy.deepcopy(config_dict['StdRESTful']['MQTT'])
@@ -841,7 +841,7 @@ class TestInitialization(unittest.TestCase):
         }
 
         topics = {
-            topic: self.create_topic(aggregation='aggregate ,individual', upload_all=False)
+            topic: self.create_topic(upload_all=False)
         }
 
         site_dict = copy.deepcopy(config_dict['StdRESTful']['MQTT'])
@@ -891,7 +891,7 @@ class TestInitialization(unittest.TestCase):
         }
 
         topics = {
-            topic: self.create_topic(aggregation='aggregate ,individual', append_units_label=False)
+            topic: self.create_topic(append_units_label=False)
         }
 
         site_dict = copy.deepcopy(config_dict['StdRESTful']['MQTT'])
@@ -941,7 +941,7 @@ class TestInitialization(unittest.TestCase):
         }
 
         topics = {
-            topic: self.create_topic(aggregation='aggregate ,individual', retain=True)
+            topic: self.create_topic(retain=True)
         }
 
         site_dict = copy.deepcopy(config_dict['StdRESTful']['MQTT'])
@@ -988,7 +988,7 @@ class TestInitialization(unittest.TestCase):
         config = configobj.ConfigObj(config_dict)
 
         topics = {
-            topic: self.create_topic(aggregation='aggregate ,individual', augment_record=False)
+            topic: self.create_topic(augment_record=False)
         }
 
         site_dict = copy.deepcopy(config_dict['StdRESTful']['MQTT'])
@@ -1039,7 +1039,7 @@ class TestInitialization(unittest.TestCase):
         }
 
         topics = {
-            topic: self.create_topic(aggregation='aggregate ,individual', qos=2)
+            topic: self.create_topic(qos=2)
         }
 
         site_dict = copy.deepcopy(config_dict['StdRESTful']['MQTT'])
@@ -1089,7 +1089,7 @@ class TestInitialization(unittest.TestCase):
         }
 
         topics = {
-            topic: self.create_topic(aggregation='aggregate ,individual')
+            topic: self.create_topic()
         }
         topics[topic]['unit_system'] = 1
 
@@ -1144,7 +1144,7 @@ class TestInitialization(unittest.TestCase):
         }
 
         topics = {
-            topic: self.create_topic(aggregation='aggregate ,individual', inputs=inputs)
+            topic: self.create_topic(inputs=inputs)
         }
 
         site_dict = copy.deepcopy(config_dict['StdRESTful']['MQTT'])
@@ -1171,8 +1171,8 @@ class TestInitialization(unittest.TestCase):
                                 mock_MQTTThread.assert_called_once_with(SUT.archive_queue, **site_config_final)
 
 if __name__ == '__main__':
-    #test_suite = unittest.TestSuite()
-    #test_suite.addTest(TestInitialization('test_new'))
-    #unittest.TextTestRunner().run(test_suite)
+    test_suite = unittest.TestSuite()
+    test_suite.addTest(TestInitialization('test_topicsunit_system'))
+    unittest.TextTestRunner().run(test_suite)
 
-    unittest.main(exit=False)
+    #unittest.main(exit=False)

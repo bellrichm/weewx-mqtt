@@ -112,7 +112,7 @@ Publish to multiple topics and override options specified above:
         [[[topics]]]
             [[[[topic-1]]]]
                 unit_system = METRIC
-                aggregation = individual, aggregate # individual, aggregate, or both
+                type = json # or individual. Default is json.
                 binding = loop # options are loop or archive
                 augment_record = True
                 qos = 1        # options are 0, 1, 2
@@ -402,14 +402,14 @@ class MQTT(weewx.restx.StdRESTbase):
                 site_dict['topics'] = {}
                 site_dict['topics'][topic] = {}
                 topics[topic] = {}
-                self._init_topic_dict(topic, site_dict, topics[topic], aggregation='aggregate')
+                self._init_topic_dict(topic, site_dict, topics[topic], payload_type='json')
 
             if aggregation.find('individual') >= 0:
                 topic = site_dict.get('topic', 'weather')
                 site_dict['topics'] = {}
                 site_dict['topics'][topic] = {}
                 topics[topic] = {}
-                self._init_topic_dict(topic, site_dict, topics[topic], aggregation='individual')
+                self._init_topic_dict(topic, site_dict, topics[topic], payload_type='individual')
         else:
             if site_dict.get('topic', None) is not None:
                 loginf("'topics' configuration option found, ignoring 'topic' option")
@@ -421,19 +421,19 @@ class MQTT(weewx.restx.StdRESTbase):
         return topics
 
     @staticmethod
-    def _init_topic_dict(topic, site_dict, topic_dict, aggregation=None):
+    def _init_topic_dict(topic, site_dict, topic_dict, payload_type=None):
         topic_dict['skip_upload'] = site_dict['topics'][topic] \
                                         .get('skip_upload',
                                              site_dict.get('skip_upload', False))
         topic_dict['binding'] = site_dict['topics'][topic].get('binding',
                                                                site_dict.get('binding', 'archive'))
-        if aggregation is None:
-            topic_dict['aggregation'] = site_dict['topics'][topic] \
-                                            .get('aggregation',
-                                                 site_dict.get('aggregation',
-                                                               'aggregate ,individual'))
+        if payload_type is None:
+            topic_dict['type'] = site_dict['topics'][topic] \
+                                            .get('type',
+                                                 site_dict.get('type',
+                                                               'json'))
         else:
-            topic_dict['aggregation'] = aggregation
+            topic_dict['type'] = payload_type
         topic_dict['append_units_label'] = to_bool(site_dict['topics'][topic] \
                                                         .get('append_units_label',
                                                              site_dict.get('append_units_label',
@@ -680,13 +680,13 @@ class MQTTThread(weewx.restx.RESTThread):
         return data
 
     def _prep_data(self, client, data, topic):
-        if self.topics[topic]['aggregation'].find('aggregate') >= 0:
+        if self.topics[topic]['type'] == 'json':
             self._publish_data(client,
                                topic,
                                json.dumps(data),
                                self.topics[topic]['qos'],
                                self.topics[topic]['retain'])
-        if self.topics[topic]['aggregation'].find('individual') >= 0:
+        if self.topics[topic]['type'] == 'individual':
             for key in data:
                 tpc = topic + '/' + key
                 self._publish_data(client,
