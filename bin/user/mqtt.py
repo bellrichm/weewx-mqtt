@@ -603,7 +603,7 @@ class MQTTThread(weewx.restx.RESTThread):
         data = dict()
         for k in templates:
             try:
-                v = to_float(record.get(k))
+                v = float(record.get(k))
                 name = templates[k].get('name', k)
                 fmt = templates[k].get('format', '%s')
                 to_units = templates[k].get('units')
