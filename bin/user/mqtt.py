@@ -686,6 +686,13 @@ class MQTTThread(weewx.restx.RESTThread):
                                json.dumps(data),
                                self.topics[topic]['qos'],
                                self.topics[topic]['retain'])
+        if self.topics[topic]['type'] == 'keyword':
+            payload = ', '.join("%s=%s" % (key, val) for (key, val) in data.items())
+            self._publish_data(client,
+                               topic,
+                               payload,
+                               self.topics[topic]['qos'],
+                               self.topics[topic]['retain'])
         if self.topics[topic]['type'] == 'individual':
             for key in data:
                 tpc = topic + '/' + key
