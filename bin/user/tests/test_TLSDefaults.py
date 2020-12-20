@@ -3,7 +3,7 @@ import ssl
 
 import unittest
 
-from user.mqtt import TLSDefaults
+from user.mqttpublish import TLSDefaults
 
 class TestTLSDefaults(unittest.TestCase):
     def test_PROTOCOL_TLS(self):

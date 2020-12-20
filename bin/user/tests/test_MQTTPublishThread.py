@@ -14,7 +14,7 @@ import paho.mqtt.client as mqtt
 
 import weewx.restx
 
-from user.mqtt import MQTTPublishThread
+from user.mqttpublish import MQTTPublishThread
 
 def random_string():
     return ''.join([random.choice(string.ascii_letters + string.digits) for n in range(32)])
@@ -135,7 +135,7 @@ class TestPersistentConnection(unittest.TestCase):
         exception = ConnectionRefusedError("Connect exception.")
 
         with mock.patch('paho.mqtt.client.Client') as mock_client:
-            with mock.patch('user.mqtt.time') as mock_time:
+            with mock.patch('user.mqttpublish.time') as mock_time:
                 mock_client.return_value = mock_client
                 mock_client.connect.side_effect = mock.Mock(side_effect=exception)
 
@@ -165,7 +165,7 @@ class TestPersistentConnection(unittest.TestCase):
         self.connection_tries = 0
 
         with mock.patch('paho.mqtt.client.Client') as mock_client:
-            with mock.patch('user.mqtt.time') as mock_time:
+            with mock.patch('user.mqttpublish.time') as mock_time:
                 mock_client.return_value = mock_client
                 mock_client.connect.side_effect = mock.Mock(side_effect=exception)
                 self.client_connection = mock_client.connect
@@ -194,7 +194,7 @@ class TestPersistentConnection(unittest.TestCase):
         self.connection_tries = 0
 
         with mock.patch('paho.mqtt.client.Client') as mock_client:
-            with mock.patch('user.mqtt.time') as mock_time:
+            with mock.patch('user.mqttpublish.time') as mock_time:
                 mock_client.return_value = mock_client
                 MQTTPublishThread(None, None, **site_config)
 
@@ -558,8 +558,8 @@ class TestProcessRecord(unittest.TestCase):
         exception = ConnectionRefusedError("Connect exception.")
 
         with mock.patch('paho.mqtt.client.Client') as mock_client:
-            with mock.patch('user.mqtt.time') as mock_time:
-                with mock.patch('user.mqtt.logerr') as mock_logerr:
+            with mock.patch('user.mqttpublish.time') as mock_time:
+                with mock.patch('user.mqttpublish.logerr') as mock_logerr:
                     mock_client.return_value = mock_client
                     mock_client.connect.side_effect = mock.Mock(side_effect=exception)
 
@@ -595,8 +595,8 @@ class TestProcessRecord(unittest.TestCase):
         self.connection_tries = 0
 
         with mock.patch('paho.mqtt.client.Client') as mock_client:
-            with mock.patch('user.mqtt.time') as mock_time:
-                with mock.patch('user.mqtt.MQTTPublishThread.get_record'):
+            with mock.patch('user.mqttpublish.time') as mock_time:
+                with mock.patch('user.mqttpublish.MQTTPublishThread.get_record'):
                     with mock.patch('weewx.units'):
                         mock_client.return_value = mock_client
                         mock_client.connect.side_effect = mock.Mock(side_effect=exception)
@@ -632,8 +632,8 @@ class TestProcessRecord(unittest.TestCase):
         record = {}
 
         with mock.patch('paho.mqtt.client.Client') as mock_client:
-            with mock.patch('user.mqtt.time') as mock_time:
-                with mock.patch('user.mqtt.MQTTPublishThread.get_record'):
+            with mock.patch('user.mqttpublish.time') as mock_time:
+                with mock.patch('user.mqttpublish.MQTTPublishThread.get_record'):
                     with mock.patch('weewx.units'):
                         mock_client.return_value = mock_client
                         mock_client.publish.return_value = [mqtt.MQTT_ERR_SUCCESS, None]
@@ -665,8 +665,8 @@ class TestProcessRecord(unittest.TestCase):
         record = {}
 
         with mock.patch('paho.mqtt.client.Client') as mock_client:
-            with mock.patch('user.mqtt.time') as mock_time:
-                with mock.patch('user.mqtt.MQTTPublishThread.get_record'):
+            with mock.patch('user.mqttpublish.time') as mock_time:
+                with mock.patch('user.mqttpublish.MQTTPublishThread.get_record'):
                     with mock.patch('weewx.units'):
                         mock_client.return_value = mock_client
                         mock_client.publish.return_value = [-1, None]
@@ -703,8 +703,8 @@ class TestProcessRecord(unittest.TestCase):
         exception = ConnectionRefusedError("Connect exception.")
 
         with mock.patch('paho.mqtt.client.Client') as mock_client:
-            with mock.patch('user.mqtt.time') as mock_time:
-                with mock.patch('user.mqtt.MQTTPublishThread.get_record'):
+            with mock.patch('user.mqttpublish.time') as mock_time:
+                with mock.patch('user.mqttpublish.MQTTPublishThread.get_record'):
                     with mock.patch('weewx.units'):
                         mock_client.return_value = mock_client
                         mock_client.publish.return_value = [mqtt.MQTT_ERR_NO_CONN, None]
@@ -743,8 +743,8 @@ class TestProcessRecord(unittest.TestCase):
         self.connection_tries = 0
 
         with mock.patch('paho.mqtt.client.Client') as mock_client:
-            with mock.patch('user.mqtt.time') as mock_time:
-                with mock.patch('user.mqtt.MQTTPublishThread.get_record'):
+            with mock.patch('user.mqttpublish.time') as mock_time:
+                with mock.patch('user.mqttpublish.MQTTPublishThread.get_record'):
                     with mock.patch('weewx.units'):
                         mock_client.return_value = mock_client
                         mock_client.publish.return_value = [mqtt.MQTT_ERR_NO_CONN, None]
@@ -782,8 +782,8 @@ class TestProcessRecord(unittest.TestCase):
         exception = socket.error("Socket exception.")
 
         with mock.patch('paho.mqtt.client.Client') as mock_client:
-            with mock.patch('user.mqtt.time') as mock_time:
-                with mock.patch('user.mqtt.MQTTPublishThread.get_record'):
+            with mock.patch('user.mqttpublish.time') as mock_time:
+                with mock.patch('user.mqttpublish.MQTTPublishThread.get_record'):
                     with mock.patch('weewx.units'):
                         mock_client.return_value = mock_client
                         mock_client.publish.side_effect = mock.Mock(side_effect=exception)
@@ -820,8 +820,8 @@ class TestProcessRecord(unittest.TestCase):
         exception = socket.error("Socket exception.")
 
         with mock.patch('paho.mqtt.client.Client') as mock_client:
-            with mock.patch('user.mqtt.time') as mock_time:
-                with mock.patch('user.mqtt.MQTTPublishThread.get_record'):
+            with mock.patch('user.mqttpublish.time') as mock_time:
+                with mock.patch('user.mqttpublish.MQTTPublishThread.get_record'):
                     with mock.patch('weewx.units'):
                         mock_client.return_value = mock_client
                         mock_client.publish.return_value = [mqtt.MQTT_ERR_SUCCESS, None]

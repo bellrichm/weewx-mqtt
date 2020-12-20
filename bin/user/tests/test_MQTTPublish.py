@@ -10,7 +10,7 @@ import configobj
 
 #import weewx
 from weewx import NEW_ARCHIVE_RECORD, NEW_LOOP_PACKET
-from user.mqtt import MQTTPublish
+from user.mqttpublish import MQTTPublish
 
 def random_string():
     return ''.join([random.choice(string.ascii_letters + string.digits) for n in range(32)])
@@ -77,9 +77,9 @@ class TestInitialization(unittest.TestCase):
         with mock.patch('weewx.restx') as mock_restx:
             with mock.patch('weewx.manager') as mock_manager:
                 with mock.patch('weewx.manager.open_manager'):
-                    with mock.patch('user.mqtt.MQTTPublish.bind') as mock_bind:
-                        with mock.patch('user.mqtt.loginf'):
-                            with mock.patch('user.mqtt.MQTTPublishThread') as mock_MQTTThread:
+                    with mock.patch('user.mqttpublish.MQTTPublish.bind') as mock_bind:
+                        with mock.patch('user.mqttpublish.loginf'):
+                            with mock.patch('user.mqttpublish.MQTTPublishThread') as mock_MQTTThread:
                                 mock_restx.get_site_dict.return_value = site_config
                                 mock_manager.get_manager_dict_from_config.return_value = manager_dict
 
@@ -132,9 +132,9 @@ class TestInitialization(unittest.TestCase):
         with mock.patch('weewx.restx') as mock_restx:
             with mock.patch('weewx.manager') as mock_manager:
                 with mock.patch('weewx.manager.open_manager'):
-                    with mock.patch('user.mqtt.MQTTPublish.bind'):
-                        with mock.patch('user.mqtt.loginf'):
-                            with mock.patch('user.mqtt.MQTTPublishThread') as mock_MQTTThread:
+                    with mock.patch('user.mqttpublish.MQTTPublish.bind'):
+                        with mock.patch('user.mqttpublish.loginf'):
+                            with mock.patch('user.mqttpublish.MQTTPublishThread') as mock_MQTTThread:
                                 mock_restx.get_site_dict.return_value = site_config
                                 mock_manager.get_manager_dict_from_config.return_value = manager_dict
 
@@ -178,9 +178,9 @@ class TestInitialization(unittest.TestCase):
         with mock.patch('weewx.restx') as mock_restx:
             with mock.patch('weewx.manager') as mock_manager:
                 with mock.patch('weewx.manager.open_manager'):
-                    with mock.patch('user.mqtt.MQTTPublish.bind') as mock_bind:
-                        with mock.patch('user.mqtt.loginf'):
-                            with mock.patch('user.mqtt.MQTTPublishThread') as mock_MQTTThread:
+                    with mock.patch('user.mqttpublish.MQTTPublish.bind') as mock_bind:
+                        with mock.patch('user.mqttpublish.loginf'):
+                            with mock.patch('user.mqttpublish.MQTTPublishThread') as mock_MQTTThread:
                                 mock_restx.get_site_dict.return_value = site_config
                                 mock_manager.get_manager_dict_from_config.return_value = manager_dict
 
@@ -230,9 +230,9 @@ class TestInitialization(unittest.TestCase):
         with mock.patch('weewx.restx') as mock_restx:
             with mock.patch('weewx.manager') as mock_manager:
                 with mock.patch('weewx.manager.open_manager'):
-                    with mock.patch('user.mqtt.MQTTPublish.bind'):
-                        with mock.patch('user.mqtt.loginf'):
-                            with mock.patch('user.mqtt.MQTTPublishThread') as mock_MQTTThread:
+                    with mock.patch('user.mqttpublish.MQTTPublish.bind'):
+                        with mock.patch('user.mqttpublish.loginf'):
+                            with mock.patch('user.mqttpublish.MQTTPublishThread') as mock_MQTTThread:
                                 mock_restx.get_site_dict.return_value = site_config
                                 mock_manager.get_manager_dict_from_config.return_value = manager_dict
 
@@ -276,9 +276,9 @@ class TestInitialization(unittest.TestCase):
         with mock.patch('weewx.restx') as mock_restx:
             with mock.patch('weewx.manager') as mock_manager:
                 with mock.patch('weewx.manager.open_manager'):
-                    with mock.patch('user.mqtt.MQTTPublish.bind'):
-                        with mock.patch('user.mqtt.loginf'):
-                            with mock.patch('user.mqtt.MQTTPublishThread') as mock_MQTTThread:
+                    with mock.patch('user.mqttpublish.MQTTPublish.bind'):
+                        with mock.patch('user.mqttpublish.loginf'):
+                            with mock.patch('user.mqttpublish.MQTTPublishThread') as mock_MQTTThread:
                                 mock_restx.get_site_dict.return_value = site_config
                                 mock_manager.get_manager_dict_from_config.return_value = manager_dict
 
@@ -322,9 +322,9 @@ class TestInitialization(unittest.TestCase):
         with mock.patch('weewx.restx') as mock_restx:
             with mock.patch('weewx.manager') as mock_manager:
                 with mock.patch('weewx.manager.open_manager'):
-                    with mock.patch('user.mqtt.MQTTPublish.bind'):
-                        with mock.patch('user.mqtt.loginf'):
-                            with mock.patch('user.mqtt.MQTTPublishThread') as mock_MQTTThread:
+                    with mock.patch('user.mqttpublish.MQTTPublish.bind'):
+                        with mock.patch('user.mqttpublish.loginf'):
+                            with mock.patch('user.mqttpublish.MQTTPublishThread') as mock_MQTTThread:
                                 mock_restx.get_site_dict.return_value = site_config
                                 mock_manager.get_manager_dict_from_config.return_value = manager_dict
 
@@ -368,9 +368,9 @@ class TestInitialization(unittest.TestCase):
         with mock.patch('weewx.restx') as mock_restx:
             with mock.patch('weewx.manager') as mock_manager:
                 with mock.patch('weewx.manager.open_manager'):
-                    with mock.patch('user.mqtt.MQTTPublish.bind'):
-                        with mock.patch('user.mqtt.loginf'):
-                            with mock.patch('user.mqtt.MQTTPublishThread') as mock_MQTTThread:
+                    with mock.patch('user.mqttpublish.MQTTPublish.bind'):
+                        with mock.patch('user.mqttpublish.loginf'):
+                            with mock.patch('user.mqttpublish.MQTTPublishThread') as mock_MQTTThread:
                                 mock_restx.get_site_dict.return_value = site_config
                                 mock_manager.get_manager_dict_from_config.return_value = manager_dict
 
@@ -414,9 +414,9 @@ class TestInitialization(unittest.TestCase):
         with mock.patch('weewx.restx') as mock_restx:
             with mock.patch('weewx.manager') as mock_manager:
                 with mock.patch('weewx.manager.open_manager'):
-                    with mock.patch('user.mqtt.MQTTPublish.bind'):
-                        with mock.patch('user.mqtt.loginf'):
-                            with mock.patch('user.mqtt.MQTTPublishThread') as mock_MQTTThread:
+                    with mock.patch('user.mqttpublish.MQTTPublish.bind'):
+                        with mock.patch('user.mqttpublish.loginf'):
+                            with mock.patch('user.mqttpublish.MQTTPublishThread') as mock_MQTTThread:
                                 mock_restx.get_site_dict.return_value = site_config
                                 mock_manager.get_manager_dict_from_config.return_value = manager_dict
 
@@ -456,9 +456,9 @@ class TestInitialization(unittest.TestCase):
         with mock.patch('weewx.restx') as mock_restx:
             with mock.patch('weewx.manager') as mock_manager:
                 with mock.patch('weewx.manager.open_manager'):
-                    with mock.patch('user.mqtt.MQTTPublish.bind'):
-                        with mock.patch('user.mqtt.loginf'):
-                            with mock.patch('user.mqtt.MQTTPublishThread') as mock_MQTTThread:
+                    with mock.patch('user.mqttpublish.MQTTPublish.bind'):
+                        with mock.patch('user.mqttpublish.loginf'):
+                            with mock.patch('user.mqttpublish.MQTTPublishThread') as mock_MQTTThread:
                                 mock_restx.get_site_dict.return_value = site_config
 
                                 SUT = MQTTPublish(mock_StdEngine, config)
@@ -504,9 +504,9 @@ class TestInitialization(unittest.TestCase):
         with mock.patch('weewx.restx') as mock_restx:
             with mock.patch('weewx.manager') as mock_manager:
                 with mock.patch('weewx.manager.open_manager'):
-                    with mock.patch('user.mqtt.MQTTPublish.bind'):
-                        with mock.patch('user.mqtt.loginf'):
-                            with mock.patch('user.mqtt.MQTTPublishThread') as mock_MQTTThread:
+                    with mock.patch('user.mqttpublish.MQTTPublish.bind'):
+                        with mock.patch('user.mqttpublish.loginf'):
+                            with mock.patch('user.mqttpublish.MQTTPublishThread') as mock_MQTTThread:
                                 mock_restx.get_site_dict.return_value = site_config
                                 mock_manager.get_manager_dict_from_config.return_value = manager_dict
 
@@ -552,9 +552,9 @@ class TestInitialization(unittest.TestCase):
         with mock.patch('weewx.restx') as mock_restx:
             with mock.patch('weewx.manager') as mock_manager:
                 with mock.patch('weewx.manager.open_manager'):
-                    with mock.patch('user.mqtt.MQTTPublish.bind'):
-                        with mock.patch('user.mqtt.loginf'):
-                            with mock.patch('user.mqtt.MQTTPublishThread') as mock_MQTTThread:
+                    with mock.patch('user.mqttpublish.MQTTPublish.bind'):
+                        with mock.patch('user.mqttpublish.loginf'):
+                            with mock.patch('user.mqttpublish.MQTTPublishThread') as mock_MQTTThread:
                                 mock_restx.get_site_dict.return_value = site_config
                                 mock_manager.get_manager_dict_from_config.return_value = manager_dict
 
@@ -602,9 +602,9 @@ class TestInitialization(unittest.TestCase):
         with mock.patch('weewx.restx') as mock_restx:
             with mock.patch('weewx.manager') as mock_manager:
                 with mock.patch('weewx.manager.open_manager'):
-                    with mock.patch('user.mqtt.MQTTPublish.bind'):
-                        with mock.patch('user.mqtt.loginf'):
-                            with mock.patch('user.mqtt.MQTTPublishThread') as mock_MQTTThread:
+                    with mock.patch('user.mqttpublish.MQTTPublish.bind'):
+                        with mock.patch('user.mqttpublish.loginf'):
+                            with mock.patch('user.mqttpublish.MQTTPublishThread') as mock_MQTTThread:
                                 mock_restx.get_site_dict.return_value = site_config
                                 mock_manager.get_manager_dict_from_config.return_value = manager_dict
 
@@ -650,9 +650,9 @@ class TestInitialization(unittest.TestCase):
         with mock.patch('weewx.restx') as mock_restx:
             with mock.patch('weewx.manager') as mock_manager:
                 with mock.patch('weewx.manager.open_manager'):
-                    with mock.patch('user.mqtt.MQTTPublish.bind'):
-                        with mock.patch('user.mqtt.loginf'):
-                            with mock.patch('user.mqtt.MQTTPublishThread') as mock_MQTTThread:
+                    with mock.patch('user.mqttpublish.MQTTPublish.bind'):
+                        with mock.patch('user.mqttpublish.loginf'):
+                            with mock.patch('user.mqttpublish.MQTTPublishThread') as mock_MQTTThread:
                                 mock_restx.get_site_dict.return_value = site_config
                                 mock_manager.get_manager_dict_from_config.return_value = manager_dict
 
@@ -700,9 +700,9 @@ class TestInitialization(unittest.TestCase):
         with mock.patch('weewx.restx') as mock_restx:
             with mock.patch('weewx.manager') as mock_manager:
                 with mock.patch('weewx.manager.open_manager'):
-                    with mock.patch('user.mqtt.MQTTPublish.bind') as mock_bind:
-                        with mock.patch('user.mqtt.loginf'):
-                            with mock.patch('user.mqtt.MQTTPublishThread') as mock_MQTTThread:
+                    with mock.patch('user.mqttpublish.MQTTPublish.bind') as mock_bind:
+                        with mock.patch('user.mqttpublish.loginf'):
+                            with mock.patch('user.mqttpublish.MQTTPublishThread') as mock_MQTTThread:
                                 mock_restx.get_site_dict.return_value = site_config
                                 mock_manager.get_manager_dict_from_config.return_value = manager_dict
 
@@ -757,9 +757,9 @@ class TestInitialization(unittest.TestCase):
         with mock.patch('weewx.restx') as mock_restx:
             with mock.patch('weewx.manager') as mock_manager:
                 with mock.patch('weewx.manager.open_manager'):
-                    with mock.patch('user.mqtt.MQTTPublish.bind'):
-                        with mock.patch('user.mqtt.loginf'):
-                            with mock.patch('user.mqtt.MQTTPublishThread') as mock_MQTTThread:
+                    with mock.patch('user.mqttpublish.MQTTPublish.bind'):
+                        with mock.patch('user.mqttpublish.loginf'):
+                            with mock.patch('user.mqttpublish.MQTTPublishThread') as mock_MQTTThread:
                                 mock_restx.get_site_dict.return_value = site_config
                                 mock_manager.get_manager_dict_from_config.return_value = manager_dict
 
@@ -807,9 +807,9 @@ class TestInitialization(unittest.TestCase):
         with mock.patch('weewx.restx') as mock_restx:
             with mock.patch('weewx.manager') as mock_manager:
                 with mock.patch('weewx.manager.open_manager'):
-                    with mock.patch('user.mqtt.MQTTPublish.bind'):
-                        with mock.patch('user.mqtt.loginf'):
-                            with mock.patch('user.mqtt.MQTTPublishThread') as mock_MQTTThread:
+                    with mock.patch('user.mqttpublish.MQTTPublish.bind'):
+                        with mock.patch('user.mqttpublish.loginf'):
+                            with mock.patch('user.mqttpublish.MQTTPublishThread') as mock_MQTTThread:
                                 mock_restx.get_site_dict.return_value = site_config
                                 mock_manager.get_manager_dict_from_config.return_value = manager_dict
 
@@ -857,9 +857,9 @@ class TestInitialization(unittest.TestCase):
         with mock.patch('weewx.restx') as mock_restx:
             with mock.patch('weewx.manager') as mock_manager:
                 with mock.patch('weewx.manager.open_manager'):
-                    with mock.patch('user.mqtt.MQTTPublish.bind'):
-                        with mock.patch('user.mqtt.loginf'):
-                            with mock.patch('user.mqtt.MQTTPublishThread') as mock_MQTTThread:
+                    with mock.patch('user.mqttpublish.MQTTPublish.bind'):
+                        with mock.patch('user.mqttpublish.loginf'):
+                            with mock.patch('user.mqttpublish.MQTTPublishThread') as mock_MQTTThread:
                                 mock_restx.get_site_dict.return_value = site_config
                                 mock_manager.get_manager_dict_from_config.return_value = manager_dict
 
@@ -907,9 +907,9 @@ class TestInitialization(unittest.TestCase):
         with mock.patch('weewx.restx') as mock_restx:
             with mock.patch('weewx.manager') as mock_manager:
                 with mock.patch('weewx.manager.open_manager'):
-                    with mock.patch('user.mqtt.MQTTPublish.bind'):
-                        with mock.patch('user.mqtt.loginf'):
-                            with mock.patch('user.mqtt.MQTTPublishThread') as mock_MQTTThread:
+                    with mock.patch('user.mqttpublish.MQTTPublish.bind'):
+                        with mock.patch('user.mqttpublish.loginf'):
+                            with mock.patch('user.mqttpublish.MQTTPublishThread') as mock_MQTTThread:
                                 mock_restx.get_site_dict.return_value = site_config
                                 mock_manager.get_manager_dict_from_config.return_value = manager_dict
 
@@ -957,9 +957,9 @@ class TestInitialization(unittest.TestCase):
         with mock.patch('weewx.restx') as mock_restx:
             with mock.patch('weewx.manager') as mock_manager:
                 with mock.patch('weewx.manager.open_manager'):
-                    with mock.patch('user.mqtt.MQTTPublish.bind'):
-                        with mock.patch('user.mqtt.loginf'):
-                            with mock.patch('user.mqtt.MQTTPublishThread') as mock_MQTTThread:
+                    with mock.patch('user.mqttpublish.MQTTPublish.bind'):
+                        with mock.patch('user.mqttpublish.loginf'):
+                            with mock.patch('user.mqttpublish.MQTTPublishThread') as mock_MQTTThread:
                                 mock_restx.get_site_dict.return_value = site_config
                                 mock_manager.get_manager_dict_from_config.return_value = manager_dict
 
@@ -1003,9 +1003,9 @@ class TestInitialization(unittest.TestCase):
         with mock.patch('weewx.restx') as mock_restx:
             with mock.patch('weewx.manager') as mock_manager:
                 with mock.patch('weewx.manager.open_manager'):
-                    with mock.patch('user.mqtt.MQTTPublish.bind'):
-                        with mock.patch('user.mqtt.loginf'):
-                            with mock.patch('user.mqtt.MQTTPublishThread') as mock_MQTTThread:
+                    with mock.patch('user.mqttpublish.MQTTPublish.bind'):
+                        with mock.patch('user.mqttpublish.loginf'):
+                            with mock.patch('user.mqttpublish.MQTTPublishThread') as mock_MQTTThread:
                                 mock_restx.get_site_dict.return_value = site_config
 
                                 SUT = MQTTPublish(mock_StdEngine, config)
@@ -1055,9 +1055,9 @@ class TestInitialization(unittest.TestCase):
         with mock.patch('weewx.restx') as mock_restx:
             with mock.patch('weewx.manager') as mock_manager:
                 with mock.patch('weewx.manager.open_manager'):
-                    with mock.patch('user.mqtt.MQTTPublish.bind'):
-                        with mock.patch('user.mqtt.loginf'):
-                            with mock.patch('user.mqtt.MQTTPublishThread') as mock_MQTTThread:
+                    with mock.patch('user.mqttpublish.MQTTPublish.bind'):
+                        with mock.patch('user.mqttpublish.loginf'):
+                            with mock.patch('user.mqttpublish.MQTTPublishThread') as mock_MQTTThread:
                                 mock_restx.get_site_dict.return_value = site_config
                                 mock_manager.get_manager_dict_from_config.return_value = manager_dict
 
@@ -1106,9 +1106,9 @@ class TestInitialization(unittest.TestCase):
         with mock.patch('weewx.restx') as mock_restx:
             with mock.patch('weewx.manager') as mock_manager:
                 with mock.patch('weewx.manager.open_manager'):
-                    with mock.patch('user.mqtt.MQTTPublish.bind'):
-                        with mock.patch('user.mqtt.loginf'):
-                            with mock.patch('user.mqtt.MQTTPublishThread') as mock_MQTTThread:
+                    with mock.patch('user.mqttpublish.MQTTPublish.bind'):
+                        with mock.patch('user.mqttpublish.loginf'):
+                            with mock.patch('user.mqttpublish.MQTTPublishThread') as mock_MQTTThread:
                                 mock_restx.get_site_dict.return_value = site_config
                                 mock_manager.get_manager_dict_from_config.return_value = manager_dict
 
@@ -1160,9 +1160,9 @@ class TestInitialization(unittest.TestCase):
         with mock.patch('weewx.restx') as mock_restx:
             with mock.patch('weewx.manager') as mock_manager:
                 with mock.patch('weewx.manager.open_manager'):
-                    with mock.patch('user.mqtt.MQTTPublish.bind'):
-                        with mock.patch('user.mqtt.loginf'):
-                            with mock.patch('user.mqtt.MQTTPublishThread') as mock_MQTTThread:
+                    with mock.patch('user.mqttpublish.MQTTPublish.bind'):
+                        with mock.patch('user.mqttpublish.loginf'):
+                            with mock.patch('user.mqttpublish.MQTTPublishThread') as mock_MQTTThread:
                                 mock_restx.get_site_dict.return_value = site_config
                                 mock_manager.get_manager_dict_from_config.return_value = manager_dict
 
