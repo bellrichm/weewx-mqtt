@@ -28,7 +28,7 @@ This service requires the python bindings for mqtt:
 Minimal configuration:
 
 [StdRestful]
-    [[MQTT]]
+    [[MQTTPublish]]
         server_url = mqtt://username:password@localhost:1883/
         topic = weather
         unit_system = METRIC
@@ -37,7 +37,7 @@ Minimal configuration:
 Other MQTT options can be specified:
 
 [StdRestful]
-    [[MQTT]]
+    [[MQTTPublish]]
         ...
         qos = 1        # options are 0, 1, 2
         retain = true  # options are true or false
@@ -45,21 +45,21 @@ Other MQTT options can be specified:
 The observations can be sent individually, or in an aggregated packet:
 
 [StdRestful]
-    [[MQTT]]
+    [[MQTTPublish]]
         ...
         aggregation = individual, aggregate # individual, aggregate, or both
 
 Bind to loop packets or archive records:
 
 [StdRestful]
-    [[MQTT]]
+    [[MQTTPublish]]
         ...
         binding = loop # options are loop or archive
 
 Use the inputs map to customize name, format, or units for any observation:
 
 [StdRestful]
-    [[MQTT]]
+    [[MQTTPublish]]
         ...
         unit_system = METRIC # default to metric
         [[[inputs]]]
@@ -76,7 +76,7 @@ Paho client tls_set method.  Refer to Paho client documentation for details:
   https://eclipse.org/paho/clients/python/docs/
 
 [StdRestful]
-    [[MQTT]]
+    [[MQTTPublish]]
         ...
         [[[tls]]]
             # CA certificates file (mandatory)
@@ -108,7 +108,7 @@ Paho client tls_set method.  Refer to Paho client documentation for details:
 Publish to multiple topics and override options specified above:
 
 [StdRestful]
-    [[MQTT]]
+    [[MQTTPublish]]
         [[[topics]]]
             [[[[topic-1]]]]
                 unit_system = METRIC
@@ -247,7 +247,7 @@ def _get_template(obs_key, overrides, append_units_label, unit_system):
     return tmpl_dict
 
 
-class MQTT(weewx.restx.StdRESTbase):
+class MQTTPublish(weewx.restx.StdRESTbase):
     """ This service recognizes standard restful options plus the following:
 
         Required parameters:
@@ -282,21 +282,25 @@ class MQTT(weewx.restx.StdRESTbase):
         Default is None
     """
     def __init__(self, engine, config_dict):
-        super(MQTT, self).__init__(engine, config_dict)
+        super(MQTTPublish, self).__init__(engine, config_dict)
         loginf("service version is %s" % VERSION)
 
-        site_dict = weewx.restx.get_site_dict(config_dict, 'MQTT', 'server_url')
+        site_key = 'MQTTPublish'
+        site_dict = weewx.restx.get_site_dict(config_dict, site_key, 'server_url')
+        if site_dict is None:
+            site_key = 'MQTT'
+            site_dict = weewx.restx.get_site_dict(config_dict, site_key, 'server_url')
         if site_dict is None:
             return
 
         # get_site_dict does not get extra sections
-        site_dict['topics'] = config_dict['StdRESTful']['MQTT'].get('topics', {})
+        site_dict['topics'] = config_dict['StdRESTful'][site_key].get('topics', {})
 
         # for backward compatibility: 'units' is now 'unit_system'
         _compat(site_dict, 'units', 'unit_system')
 
-        if 'tls' in config_dict['StdRESTful']['MQTT']:
-            site_dict['tls'] = dict(config_dict['StdRESTful']['MQTT']['tls'])
+        if 'tls' in config_dict['StdRESTful'][site_key]:
+            site_dict['tls'] = dict(config_dict['StdRESTful'][site_key]['tls'])
 
         topics = self._init_topics_dict(site_dict)
 
@@ -367,7 +371,7 @@ class MQTT(weewx.restx.StdRESTbase):
             if loop_binding:
                 self.bind(weewx.NEW_LOOP_PACKET, self.new_loop_packet)
 
-        self.archive_thread = MQTTThread(self.archive_queue, **site_dict)
+        self.archive_thread = MQTTPublishThread(site_key, self.archive_queue, **site_dict)
         if not single_thread:
             self.archive_thread.start()
 
@@ -522,26 +526,26 @@ class TLSDefaults(object):
             pass
 
 
-class MQTTThread(weewx.restx.RESTThread):
+class MQTTPublishThread(weewx.restx.RESTThread):
     """ Publish data to MQTT. """
-    def __init__(self, queue, server_url, topics, persist_connection=False,
+    def __init__(self, protocol_name, queue, server_url, topics, persist_connection=False,
                  client_id='',
                  manager_dict=None, tls=None,
                  post_interval=None, stale=None,
                  log_success=True, log_failure=True,
                  timeout=60, max_tries=3, retry_wait=5,
                  max_backlog=sys.maxsize):
-        super(MQTTThread, self).__init__(queue,
-                                         protocol_name='MQTT',
-                                         manager_dict=manager_dict,
-                                         post_interval=post_interval,
-                                         max_backlog=max_backlog,
-                                         stale=stale,
-                                         log_success=log_success,
-                                         log_failure=log_failure,
-                                         max_tries=max_tries,
-                                         timeout=timeout,
-                                         retry_wait=retry_wait)
+        super(MQTTPublishThread, self).__init__(queue,
+                                                protocol_name=protocol_name,
+                                                manager_dict=manager_dict,
+                                                post_interval=post_interval,
+                                                max_backlog=max_backlog,
+                                                stale=stale,
+                                                log_success=log_success,
+                                                log_failure=log_failure,
+                                                max_tries=max_tries,
+                                                timeout=timeout,
+                                                retry_wait=retry_wait)
         self.server_url = server_url
         self.client_id = client_id
         self.persist_connection = persist_connection

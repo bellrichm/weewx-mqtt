@@ -14,7 +14,7 @@ import paho.mqtt.client as mqtt
 
 import weewx.restx
 
-from user.mqtt import MQTTThread
+from user.mqtt import MQTTPublishThread
 
 def random_string():
     return ''.join([random.choice(string.ascii_letters + string.digits) for n in range(32)])
@@ -61,7 +61,7 @@ class TestTLSInitialization(unittest.TestCase):
         }
         site_config = configobj.ConfigObj(site_dict)
 
-        SUT = MQTTThread(None, **site_config)
+        SUT = MQTTPublishThread(None, None, **site_config)
         self.assertEqual(SUT.tls_dict, {'cert_reqs': ssl.CERT_NONE})
 
     def test_tls_version(self):
@@ -80,7 +80,7 @@ class TestTLSInitialization(unittest.TestCase):
         }
         site_config = configobj.ConfigObj(site_dict)
 
-        SUT = MQTTThread(None, **site_config)
+        SUT = MQTTPublishThread(None, None, **site_config)
         self.assertEqual(SUT.tls_dict, {'tls_version': ssl.PROTOCOL_TLS})
 
     def test_tls_options(self):
@@ -100,7 +100,7 @@ class TestTLSInitialization(unittest.TestCase):
         }
         site_config = configobj.ConfigObj(site_dict)
 
-        SUT = MQTTThread(None, **site_config)
+        SUT = MQTTPublishThread(None, None, **site_config)
         self.assertEqual(SUT.tls_dict, {'ca_certs': ca_certs})
 
 class TestPersistentConnection(unittest.TestCase):
@@ -140,7 +140,7 @@ class TestPersistentConnection(unittest.TestCase):
                 mock_client.connect.side_effect = mock.Mock(side_effect=exception)
 
                 with self.assertRaises(ConnectionError) as error:
-                    MQTTThread(None, **site_config)
+                    MQTTPublishThread(None, None, **site_config)
 
                 self.assertEqual(len(error.exception.args), 0)
                 self.assertEqual(mock_client.connect.call_count, max_tries)
@@ -171,7 +171,7 @@ class TestPersistentConnection(unittest.TestCase):
                 self.client_connection = mock_client.connect
                 mock_time.sleep.side_effect = self.reset_connection_error
 
-                MQTTThread(None, **site_config)
+                MQTTPublishThread(None, None, **site_config)
 
                 self.assertEqual(mock_client.connect.call_count, self.connection_tries + 1)
                 self.assertEqual(mock_time.sleep.call_count, self.connection_tries)
@@ -196,7 +196,7 @@ class TestPersistentConnection(unittest.TestCase):
         with mock.patch('paho.mqtt.client.Client') as mock_client:
             with mock.patch('user.mqtt.time') as mock_time:
                 mock_client.return_value = mock_client
-                MQTTThread(None, **site_config)
+                MQTTPublishThread(None, None, **site_config)
 
                 self.assertEqual(mock_client.connect.call_count, 1)
                 self.assertEqual(mock_time.sleep.call_count, 0)
@@ -279,7 +279,7 @@ class TestFilterData(unittest.TestCase):
         with mock.patch('weewx.units') as mock_units:
             mock_units.getStandardUnitType.side_effect = self.getStandardUnitType_return_value
             mock_units.convert.side_effect = self.convert_return_value
-            SUT = MQTTThread(None, **site_config)
+            SUT = MQTTPublishThread(None, None, **site_config)
 
             filtered_record = SUT.filter_data(upload_all, templates, inputs, append_units_label, 'string', record)
 
@@ -329,7 +329,7 @@ class TestFilterData(unittest.TestCase):
         with mock.patch('weewx.units') as mock_units:
             mock_units.getStandardUnitType.side_effect = self.getStandardUnitType_return_value
             mock_units.convert.side_effect = self.convert_return_value
-            SUT = MQTTThread(None, **site_config)
+            SUT = MQTTPublishThread(None, None, **site_config)
 
             filtered_record = SUT.filter_data(upload_all, templates, inputs, append_units_label, 'string', record)
 
@@ -380,7 +380,7 @@ class TestFilterData(unittest.TestCase):
         with mock.patch('weewx.units') as mock_units:
             mock_units.getStandardUnitType.side_effect = self.getStandardUnitType_return_value
             mock_units.convert.side_effect = self.convert_return_value
-            SUT = MQTTThread(None, **site_config)
+            SUT = MQTTPublishThread(None, None, **site_config)
 
             filtered_record = SUT.filter_data(upload_all, templates, inputs, append_units_label, 'string', record)
 
@@ -421,7 +421,7 @@ class TestFilterData(unittest.TestCase):
         with mock.patch('weewx.units') as mock_units:
             mock_units.getStandardUnitType.side_effect = self.getStandardUnitType_return_value
             mock_units.convert.side_effect = self.convert_return_value
-            SUT = MQTTThread(None, **site_config)
+            SUT = MQTTPublishThread(None, None, **site_config)
 
             filtered_record = SUT.filter_data(upload_all, templates, inputs, append_units_label, 'string', record)
 
@@ -463,7 +463,7 @@ class TestFilterData(unittest.TestCase):
         with mock.patch('weewx.units') as mock_units:
             mock_units.getStandardUnitType.side_effect = self.getStandardUnitType_return_value
             mock_units.convert.side_effect = self.convert_return_value
-            SUT = MQTTThread(None, **site_config)
+            SUT = MQTTPublishThread(None, None, **site_config)
 
             filtered_record = SUT.filter_data(upload_all, templates, inputs, append_units_label, 'string', record)
 
@@ -505,7 +505,7 @@ class TestFilterData(unittest.TestCase):
         with mock.patch('weewx.units') as mock_units:
             mock_units.getStandardUnitType.side_effect = self.getStandardUnitType_return_value
             mock_units.convert.side_effect = self.convert_return_value
-            SUT = MQTTThread(None, **site_config)
+            SUT = MQTTPublishThread(None, None, **site_config)
 
             filtered_record = SUT.filter_data(upload_all, templates, inputs, append_units_label, 'string', record)
 
@@ -563,7 +563,7 @@ class TestProcessRecord(unittest.TestCase):
                     mock_client.return_value = mock_client
                     mock_client.connect.side_effect = mock.Mock(side_effect=exception)
 
-                    SUT = MQTTThread(None, **site_config)
+                    SUT = MQTTPublishThread(None, None, **site_config)
 
                     SUT.process_record(record, mock_manager)
 
@@ -596,7 +596,7 @@ class TestProcessRecord(unittest.TestCase):
 
         with mock.patch('paho.mqtt.client.Client') as mock_client:
             with mock.patch('user.mqtt.time') as mock_time:
-                with mock.patch('user.mqtt.MQTTThread.get_record'):
+                with mock.patch('user.mqtt.MQTTPublishThread.get_record'):
                     with mock.patch('weewx.units'):
                         mock_client.return_value = mock_client
                         mock_client.connect.side_effect = mock.Mock(side_effect=exception)
@@ -604,7 +604,7 @@ class TestProcessRecord(unittest.TestCase):
                         mock_time.sleep.side_effect = self.reset_connection_error
                         mock_client.publish.return_value = [mqtt.MQTT_ERR_SUCCESS, None]
 
-                        SUT = MQTTThread(None, **site_config)
+                        SUT = MQTTPublishThread(None, None, **site_config)
 
                         SUT.process_record(record, mock_manager)
 
@@ -633,12 +633,12 @@ class TestProcessRecord(unittest.TestCase):
 
         with mock.patch('paho.mqtt.client.Client') as mock_client:
             with mock.patch('user.mqtt.time') as mock_time:
-                with mock.patch('user.mqtt.MQTTThread.get_record'):
+                with mock.patch('user.mqtt.MQTTPublishThread.get_record'):
                     with mock.patch('weewx.units'):
                         mock_client.return_value = mock_client
                         mock_client.publish.return_value = [mqtt.MQTT_ERR_SUCCESS, None]
 
-                        SUT = MQTTThread(None, **site_config)
+                        SUT = MQTTPublishThread(None, None, **site_config)
 
                         SUT.process_record(record, mock_manager)
 
@@ -666,12 +666,12 @@ class TestProcessRecord(unittest.TestCase):
 
         with mock.patch('paho.mqtt.client.Client') as mock_client:
             with mock.patch('user.mqtt.time') as mock_time:
-                with mock.patch('user.mqtt.MQTTThread.get_record'):
+                with mock.patch('user.mqtt.MQTTPublishThread.get_record'):
                     with mock.patch('weewx.units'):
                         mock_client.return_value = mock_client
                         mock_client.publish.return_value = [-1, None]
 
-                        SUT = MQTTThread(None, **site_config)
+                        SUT = MQTTPublishThread(None, None, **site_config)
 
                         with self.assertRaises(weewx.restx.FailedPost) as error:
                             SUT.process_record(record, mock_manager)
@@ -704,12 +704,12 @@ class TestProcessRecord(unittest.TestCase):
 
         with mock.patch('paho.mqtt.client.Client') as mock_client:
             with mock.patch('user.mqtt.time') as mock_time:
-                with mock.patch('user.mqtt.MQTTThread.get_record'):
+                with mock.patch('user.mqtt.MQTTPublishThread.get_record'):
                     with mock.patch('weewx.units'):
                         mock_client.return_value = mock_client
                         mock_client.publish.return_value = [mqtt.MQTT_ERR_NO_CONN, None]
 
-                        SUT = MQTTThread(None, **site_config)
+                        SUT = MQTTPublishThread(None, None, **site_config)
 
                         mock_client.connect.side_effect = mock.Mock(side_effect=exception)
                         with self.assertRaises(weewx.restx.FailedPost) as error:
@@ -744,14 +744,14 @@ class TestProcessRecord(unittest.TestCase):
 
         with mock.patch('paho.mqtt.client.Client') as mock_client:
             with mock.patch('user.mqtt.time') as mock_time:
-                with mock.patch('user.mqtt.MQTTThread.get_record'):
+                with mock.patch('user.mqtt.MQTTPublishThread.get_record'):
                     with mock.patch('weewx.units'):
                         mock_client.return_value = mock_client
                         mock_client.publish.return_value = [mqtt.MQTT_ERR_NO_CONN, None]
                         self.client_publish = mock_client.publish
                         mock_time.sleep.side_effect = self.reset_publish_return_value
 
-                        SUT = MQTTThread(None, **site_config)
+                        SUT = MQTTPublishThread(None, None, **site_config)
 
                         mock_client.connect.side_effect = mock.Mock(side_effect=exception)
 
@@ -783,12 +783,12 @@ class TestProcessRecord(unittest.TestCase):
 
         with mock.patch('paho.mqtt.client.Client') as mock_client:
             with mock.patch('user.mqtt.time') as mock_time:
-                with mock.patch('user.mqtt.MQTTThread.get_record'):
+                with mock.patch('user.mqtt.MQTTPublishThread.get_record'):
                     with mock.patch('weewx.units'):
                         mock_client.return_value = mock_client
                         mock_client.publish.side_effect = mock.Mock(side_effect=exception)
 
-                        SUT = MQTTThread(None, **site_config)
+                        SUT = MQTTPublishThread(None, None, **site_config)
 
                         with self.assertRaises(weewx.restx.FailedPost) as error:
                             SUT.process_record(record, mock_manager)
@@ -821,7 +821,7 @@ class TestProcessRecord(unittest.TestCase):
 
         with mock.patch('paho.mqtt.client.Client') as mock_client:
             with mock.patch('user.mqtt.time') as mock_time:
-                with mock.patch('user.mqtt.MQTTThread.get_record'):
+                with mock.patch('user.mqtt.MQTTPublishThread.get_record'):
                     with mock.patch('weewx.units'):
                         mock_client.return_value = mock_client
                         mock_client.publish.return_value = [mqtt.MQTT_ERR_SUCCESS, None]
@@ -829,7 +829,7 @@ class TestProcessRecord(unittest.TestCase):
                         self.client_publish = mock_client.publish
                         mock_time.sleep.side_effect = self.reset_publish_side_effect
 
-                        SUT = MQTTThread(None, **site_config)
+                        SUT = MQTTPublishThread(None, None, **site_config)
 
                         SUT.process_record(record, mock_manager)
 

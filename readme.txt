@@ -44,7 +44,7 @@ wee_extension --install weewx-mqtt.zip
 3) modify weewx.conf:
 
 [StdRESTful]
-    [[MQTT]]
+    [[MQTTPublish]]
         server_url = mqtt://username:password@example.com:1883
 
 4) restart weewx

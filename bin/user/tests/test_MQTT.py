@@ -10,7 +10,7 @@ import configobj
 
 #import weewx
 from weewx import NEW_ARCHIVE_RECORD, NEW_LOOP_PACKET
-from user.mqtt import MQTT
+from user.mqtt import MQTTPublish
 
 def random_string():
     return ''.join([random.choice(string.ascii_letters + string.digits) for n in range(32)])
@@ -48,7 +48,7 @@ class TestInitialization(unittest.TestCase):
 
         config_dict = {
             'StdRESTful': {
-                'MQTT': {
+                'MQTTPublish': {
                     'server_url': server_url,
                 }
             }
@@ -64,7 +64,7 @@ class TestInitialization(unittest.TestCase):
             'weather': self.create_topic(payload_type='individual')
             }
 
-        site_dict = copy.deepcopy(config_dict['StdRESTful']['MQTT'])
+        site_dict = copy.deepcopy(config_dict['StdRESTful']['MQTTPublish'])
         site_config = configobj.ConfigObj(site_dict)
 
         site_dict_final = {
@@ -77,13 +77,13 @@ class TestInitialization(unittest.TestCase):
         with mock.patch('weewx.restx') as mock_restx:
             with mock.patch('weewx.manager') as mock_manager:
                 with mock.patch('weewx.manager.open_manager'):
-                    with mock.patch('user.mqtt.MQTT.bind') as mock_bind:
+                    with mock.patch('user.mqtt.MQTTPublish.bind') as mock_bind:
                         with mock.patch('user.mqtt.loginf'):
-                            with mock.patch('user.mqtt.MQTTThread') as mock_MQTTThread:
+                            with mock.patch('user.mqtt.MQTTPublishThread') as mock_MQTTThread:
                                 mock_restx.get_site_dict.return_value = site_config
                                 mock_manager.get_manager_dict_from_config.return_value = manager_dict
 
-                                SUT = MQTT(mock_StdEngine, config)
+                                SUT = MQTTPublish(mock_StdEngine, config)
 
                                 mock_manager.get_manager_dict_from_config.assert_called_once_with(config, 'wx_binding')
                                 mock_manager.open_manager.assert_called_once_with(manager_dict)
@@ -93,7 +93,7 @@ class TestInitialization(unittest.TestCase):
                                 self.assertEqual(call_args_list[0].args[0], NEW_ARCHIVE_RECORD)
                                 self.assertEqual(call_args_list[0].args[1], SUT.new_archive_record)
 
-                                mock_MQTTThread.assert_called_once_with(SUT.archive_queue, **site_config_final)
+                                mock_MQTTThread.assert_called_once_with('MQTTPublish', SUT.archive_queue, **site_config_final)
 
     def test_topic(self):
         mock_StdEngine = mock.Mock()
@@ -102,7 +102,7 @@ class TestInitialization(unittest.TestCase):
 
         config_dict = {
             'StdRESTful': {
-                'MQTT': {
+                'MQTTPublish': {
                     'server_url': server_url,
                     'topic': topic
                 }
@@ -119,7 +119,7 @@ class TestInitialization(unittest.TestCase):
             topic: self.create_topic(payload_type='individual')
             }
 
-        site_dict = copy.deepcopy(config_dict['StdRESTful']['MQTT'])
+        site_dict = copy.deepcopy(config_dict['StdRESTful']['MQTTPublish'])
         site_config = configobj.ConfigObj(site_dict)
 
         site_dict_final = {
@@ -132,15 +132,15 @@ class TestInitialization(unittest.TestCase):
         with mock.patch('weewx.restx') as mock_restx:
             with mock.patch('weewx.manager') as mock_manager:
                 with mock.patch('weewx.manager.open_manager'):
-                    with mock.patch('user.mqtt.MQTT.bind'):
+                    with mock.patch('user.mqtt.MQTTPublish.bind'):
                         with mock.patch('user.mqtt.loginf'):
-                            with mock.patch('user.mqtt.MQTTThread') as mock_MQTTThread:
+                            with mock.patch('user.mqtt.MQTTPublishThread') as mock_MQTTThread:
                                 mock_restx.get_site_dict.return_value = site_config
                                 mock_manager.get_manager_dict_from_config.return_value = manager_dict
 
-                                SUT = MQTT(mock_StdEngine, config)
+                                SUT = MQTTPublish(mock_StdEngine, config)
 
-                                mock_MQTTThread.assert_called_once_with(SUT.archive_queue, **site_config_final)
+                                mock_MQTTThread.assert_called_once_with('MQTTPublish', SUT.archive_queue, **site_config_final)
 
     def test_binding(self):
         mock_StdEngine = mock.Mock()
@@ -148,7 +148,7 @@ class TestInitialization(unittest.TestCase):
 
         config_dict = {
             'StdRESTful': {
-                'MQTT': {
+                'MQTTPublish': {
                     'server_url': server_url,
                     'binding': 'archive, loop'
                 }
@@ -165,7 +165,7 @@ class TestInitialization(unittest.TestCase):
             'weather': self.create_topic(payload_type='individual', binding='archive, loop')
             }
 
-        site_dict = copy.deepcopy(config_dict['StdRESTful']['MQTT'])
+        site_dict = copy.deepcopy(config_dict['StdRESTful']['MQTTPublish'])
         site_config = configobj.ConfigObj(site_dict)
 
         site_dict_final = {
@@ -178,13 +178,13 @@ class TestInitialization(unittest.TestCase):
         with mock.patch('weewx.restx') as mock_restx:
             with mock.patch('weewx.manager') as mock_manager:
                 with mock.patch('weewx.manager.open_manager'):
-                    with mock.patch('user.mqtt.MQTT.bind') as mock_bind:
+                    with mock.patch('user.mqtt.MQTTPublish.bind') as mock_bind:
                         with mock.patch('user.mqtt.loginf'):
-                            with mock.patch('user.mqtt.MQTTThread') as mock_MQTTThread:
+                            with mock.patch('user.mqtt.MQTTPublishThread') as mock_MQTTThread:
                                 mock_restx.get_site_dict.return_value = site_config
                                 mock_manager.get_manager_dict_from_config.return_value = manager_dict
 
-                                SUT = MQTT(mock_StdEngine, config)
+                                SUT = MQTTPublish(mock_StdEngine, config)
 
                                 call_args_list = mock_bind.call_args_list
                                 self.assertEqual(len(call_args_list), 2)
@@ -193,7 +193,7 @@ class TestInitialization(unittest.TestCase):
                                 self.assertEqual(call_args_list[1].args[0], NEW_LOOP_PACKET)
                                 self.assertEqual(call_args_list[1].args[1], SUT.new_loop_packet)
 
-                                mock_MQTTThread.assert_called_once_with(SUT.archive_queue, **site_config_final)
+                                mock_MQTTThread.assert_called_once_with('MQTTPublish', SUT.archive_queue, **site_config_final)
 
     def test_aggregation(self):
         mock_StdEngine = mock.Mock()
@@ -201,7 +201,7 @@ class TestInitialization(unittest.TestCase):
 
         config_dict = {
             'StdRESTful': {
-                'MQTT': {
+                'MQTTPublish': {
                     'server_url': server_url,
                     'aggregation': 'individual'
                 }
@@ -217,7 +217,7 @@ class TestInitialization(unittest.TestCase):
             'weather': self.create_topic(payload_type='individual')
             }
 
-        site_dict = copy.deepcopy(config_dict['StdRESTful']['MQTT'])
+        site_dict = copy.deepcopy(config_dict['StdRESTful']['MQTTPublish'])
         site_config = configobj.ConfigObj(site_dict)
 
         site_dict_final = {
@@ -230,15 +230,15 @@ class TestInitialization(unittest.TestCase):
         with mock.patch('weewx.restx') as mock_restx:
             with mock.patch('weewx.manager') as mock_manager:
                 with mock.patch('weewx.manager.open_manager'):
-                    with mock.patch('user.mqtt.MQTT.bind'):
+                    with mock.patch('user.mqtt.MQTTPublish.bind'):
                         with mock.patch('user.mqtt.loginf'):
-                            with mock.patch('user.mqtt.MQTTThread') as mock_MQTTThread:
+                            with mock.patch('user.mqtt.MQTTPublishThread') as mock_MQTTThread:
                                 mock_restx.get_site_dict.return_value = site_config
                                 mock_manager.get_manager_dict_from_config.return_value = manager_dict
 
-                                SUT = MQTT(mock_StdEngine, config)
+                                SUT = MQTTPublish(mock_StdEngine, config)
 
-                                mock_MQTTThread.assert_called_once_with(SUT.archive_queue, **site_config_final)
+                                mock_MQTTThread.assert_called_once_with('MQTTPublish', SUT.archive_queue, **site_config_final)
 
     def test_skip_upload(self):
         mock_StdEngine = mock.Mock()
@@ -246,7 +246,7 @@ class TestInitialization(unittest.TestCase):
 
         config_dict = {
             'StdRESTful': {
-                'MQTT': {
+                'MQTTPublish': {
                     'server_url': server_url,
                     'skip_upload': True
                 }
@@ -263,7 +263,7 @@ class TestInitialization(unittest.TestCase):
             'weather': self.create_topic(payload_type='individual', skip_upload=True)
             }
 
-        site_dict = copy.deepcopy(config_dict['StdRESTful']['MQTT'])
+        site_dict = copy.deepcopy(config_dict['StdRESTful']['MQTTPublish'])
         site_config = configobj.ConfigObj(site_dict)
 
         site_dict_final = {
@@ -276,15 +276,15 @@ class TestInitialization(unittest.TestCase):
         with mock.patch('weewx.restx') as mock_restx:
             with mock.patch('weewx.manager') as mock_manager:
                 with mock.patch('weewx.manager.open_manager'):
-                    with mock.patch('user.mqtt.MQTT.bind'):
+                    with mock.patch('user.mqtt.MQTTPublish.bind'):
                         with mock.patch('user.mqtt.loginf'):
-                            with mock.patch('user.mqtt.MQTTThread') as mock_MQTTThread:
+                            with mock.patch('user.mqtt.MQTTPublishThread') as mock_MQTTThread:
                                 mock_restx.get_site_dict.return_value = site_config
                                 mock_manager.get_manager_dict_from_config.return_value = manager_dict
 
-                                SUT = MQTT(mock_StdEngine, config)
+                                SUT = MQTTPublish(mock_StdEngine, config)
 
-                                mock_MQTTThread.assert_called_once_with(SUT.archive_queue, **site_config_final)
+                                mock_MQTTThread.assert_called_once_with('MQTTPublish', SUT.archive_queue, **site_config_final)
 
     def test_obs_to_upload(self):
         mock_StdEngine = mock.Mock()
@@ -292,7 +292,7 @@ class TestInitialization(unittest.TestCase):
 
         config_dict = {
             'StdRESTful': {
-                'MQTT': {
+                'MQTTPublish': {
                     'server_url': server_url,
                     'obs_to_upload': 'none'
                 }
@@ -309,7 +309,7 @@ class TestInitialization(unittest.TestCase):
             'weather': self.create_topic(payload_type='individual', upload_all=False)
             }
 
-        site_dict = copy.deepcopy(config_dict['StdRESTful']['MQTT'])
+        site_dict = copy.deepcopy(config_dict['StdRESTful']['MQTTPublish'])
         site_config = configobj.ConfigObj(site_dict)
 
         site_dict_final = {
@@ -322,15 +322,15 @@ class TestInitialization(unittest.TestCase):
         with mock.patch('weewx.restx') as mock_restx:
             with mock.patch('weewx.manager') as mock_manager:
                 with mock.patch('weewx.manager.open_manager'):
-                    with mock.patch('user.mqtt.MQTT.bind'):
+                    with mock.patch('user.mqtt.MQTTPublish.bind'):
                         with mock.patch('user.mqtt.loginf'):
-                            with mock.patch('user.mqtt.MQTTThread') as mock_MQTTThread:
+                            with mock.patch('user.mqtt.MQTTPublishThread') as mock_MQTTThread:
                                 mock_restx.get_site_dict.return_value = site_config
                                 mock_manager.get_manager_dict_from_config.return_value = manager_dict
 
-                                SUT = MQTT(mock_StdEngine, config)
+                                SUT = MQTTPublish(mock_StdEngine, config)
 
-                                mock_MQTTThread.assert_called_once_with(SUT.archive_queue, **site_config_final)
+                                mock_MQTTThread.assert_called_once_with('MQTTPublish', SUT.archive_queue, **site_config_final)
 
     def test_append_units_label(self):
         mock_StdEngine = mock.Mock()
@@ -338,7 +338,7 @@ class TestInitialization(unittest.TestCase):
 
         config_dict = {
             'StdRESTful': {
-                'MQTT': {
+                'MQTTPublish': {
                     'server_url': server_url,
                     'append_units_label': False
                 }
@@ -355,7 +355,7 @@ class TestInitialization(unittest.TestCase):
             'weather': self.create_topic(payload_type='individual', append_units_label=False)
             }
 
-        site_dict = copy.deepcopy(config_dict['StdRESTful']['MQTT'])
+        site_dict = copy.deepcopy(config_dict['StdRESTful']['MQTTPublish'])
         site_config = configobj.ConfigObj(site_dict)
 
         site_dict_final = {
@@ -368,15 +368,15 @@ class TestInitialization(unittest.TestCase):
         with mock.patch('weewx.restx') as mock_restx:
             with mock.patch('weewx.manager') as mock_manager:
                 with mock.patch('weewx.manager.open_manager'):
-                    with mock.patch('user.mqtt.MQTT.bind'):
+                    with mock.patch('user.mqtt.MQTTPublish.bind'):
                         with mock.patch('user.mqtt.loginf'):
-                            with mock.patch('user.mqtt.MQTTThread') as mock_MQTTThread:
+                            with mock.patch('user.mqtt.MQTTPublishThread') as mock_MQTTThread:
                                 mock_restx.get_site_dict.return_value = site_config
                                 mock_manager.get_manager_dict_from_config.return_value = manager_dict
 
-                                SUT = MQTT(mock_StdEngine, config)
+                                SUT = MQTTPublish(mock_StdEngine, config)
 
-                                mock_MQTTThread.assert_called_once_with(SUT.archive_queue, **site_config_final)
+                                mock_MQTTThread.assert_called_once_with('MQTTPublish', SUT.archive_queue, **site_config_final)
 
     def test_retain(self):
         mock_StdEngine = mock.Mock()
@@ -384,7 +384,7 @@ class TestInitialization(unittest.TestCase):
 
         config_dict = {
             'StdRESTful': {
-                'MQTT': {
+                'MQTTPublish': {
                     'server_url': server_url,
                     'retain': True
                 }
@@ -401,7 +401,7 @@ class TestInitialization(unittest.TestCase):
             'weather': self.create_topic(payload_type='individual', retain=True)
             }
 
-        site_dict = copy.deepcopy(config_dict['StdRESTful']['MQTT'])
+        site_dict = copy.deepcopy(config_dict['StdRESTful']['MQTTPublish'])
         site_config = configobj.ConfigObj(site_dict)
 
         site_dict_final = {
@@ -414,16 +414,16 @@ class TestInitialization(unittest.TestCase):
         with mock.patch('weewx.restx') as mock_restx:
             with mock.patch('weewx.manager') as mock_manager:
                 with mock.patch('weewx.manager.open_manager'):
-                    with mock.patch('user.mqtt.MQTT.bind'):
+                    with mock.patch('user.mqtt.MQTTPublish.bind'):
                         with mock.patch('user.mqtt.loginf'):
-                            with mock.patch('user.mqtt.MQTTThread') as mock_MQTTThread:
+                            with mock.patch('user.mqtt.MQTTPublishThread') as mock_MQTTThread:
                                 mock_restx.get_site_dict.return_value = site_config
                                 mock_manager.get_manager_dict_from_config.return_value = manager_dict
 
-                                SUT = MQTT(mock_StdEngine, config)
+                                SUT = MQTTPublish(mock_StdEngine, config)
 
 
-                                mock_MQTTThread.assert_called_once_with(SUT.archive_queue, **site_config_final)
+                                mock_MQTTThread.assert_called_once_with('MQTTPublish', SUT.archive_queue, **site_config_final)
 
     def test_augment_record(self):
         mock_StdEngine = mock.Mock()
@@ -431,7 +431,7 @@ class TestInitialization(unittest.TestCase):
 
         config_dict = {
             'StdRESTful': {
-                'MQTT': {
+                'MQTTPublish': {
                     'server_url': server_url,
                     'augment_record': False
                 }
@@ -444,7 +444,7 @@ class TestInitialization(unittest.TestCase):
             'weather': self.create_topic(payload_type='individual', augment_record=False)
             }
 
-        site_dict = copy.deepcopy(config_dict['StdRESTful']['MQTT'])
+        site_dict = copy.deepcopy(config_dict['StdRESTful']['MQTTPublish'])
         site_config = configobj.ConfigObj(site_dict)
 
         site_dict_final = {
@@ -456,17 +456,17 @@ class TestInitialization(unittest.TestCase):
         with mock.patch('weewx.restx') as mock_restx:
             with mock.patch('weewx.manager') as mock_manager:
                 with mock.patch('weewx.manager.open_manager'):
-                    with mock.patch('user.mqtt.MQTT.bind'):
+                    with mock.patch('user.mqtt.MQTTPublish.bind'):
                         with mock.patch('user.mqtt.loginf'):
-                            with mock.patch('user.mqtt.MQTTThread') as mock_MQTTThread:
+                            with mock.patch('user.mqtt.MQTTPublishThread') as mock_MQTTThread:
                                 mock_restx.get_site_dict.return_value = site_config
 
-                                SUT = MQTT(mock_StdEngine, config)
+                                SUT = MQTTPublish(mock_StdEngine, config)
 
                                 mock_manager.get_manager_dict_from_config.assert_not_called()
                                 mock_manager.open_manager.assert_not_called()
 
-                                mock_MQTTThread.assert_called_once_with(SUT.archive_queue, **site_config_final)
+                                mock_MQTTThread.assert_called_once_with('MQTTPublish', SUT.archive_queue, **site_config_final)
 
     def test_qos(self):
         mock_StdEngine = mock.Mock()
@@ -474,7 +474,7 @@ class TestInitialization(unittest.TestCase):
 
         config_dict = {
             'StdRESTful': {
-                'MQTT': {
+                'MQTTPublish': {
                     'server_url': server_url,
                     'qos': 2
                 }
@@ -491,7 +491,7 @@ class TestInitialization(unittest.TestCase):
             'weather': self.create_topic(payload_type='individual', qos=2)
             }
 
-        site_dict = copy.deepcopy(config_dict['StdRESTful']['MQTT'])
+        site_dict = copy.deepcopy(config_dict['StdRESTful']['MQTTPublish'])
         site_config = configobj.ConfigObj(site_dict)
 
         site_dict_final = {
@@ -504,15 +504,15 @@ class TestInitialization(unittest.TestCase):
         with mock.patch('weewx.restx') as mock_restx:
             with mock.patch('weewx.manager') as mock_manager:
                 with mock.patch('weewx.manager.open_manager'):
-                    with mock.patch('user.mqtt.MQTT.bind'):
+                    with mock.patch('user.mqtt.MQTTPublish.bind'):
                         with mock.patch('user.mqtt.loginf'):
-                            with mock.patch('user.mqtt.MQTTThread') as mock_MQTTThread:
+                            with mock.patch('user.mqtt.MQTTPublishThread') as mock_MQTTThread:
                                 mock_restx.get_site_dict.return_value = site_config
                                 mock_manager.get_manager_dict_from_config.return_value = manager_dict
 
-                                SUT = MQTT(mock_StdEngine, config)
+                                SUT = MQTTPublish(mock_StdEngine, config)
 
-                                mock_MQTTThread.assert_called_once_with(SUT.archive_queue, **site_config_final)
+                                mock_MQTTThread.assert_called_once_with('MQTTPublish', SUT.archive_queue, **site_config_final)
 
     def test_unit_system(self):
         mock_StdEngine = mock.Mock()
@@ -520,7 +520,7 @@ class TestInitialization(unittest.TestCase):
 
         config_dict = {
             'StdRESTful': {
-                'MQTT': {
+                'MQTTPublish': {
                     'server_url': server_url,
                     'unit_system': 'US'
                 }
@@ -539,7 +539,7 @@ class TestInitialization(unittest.TestCase):
         topics['weather/loop']['unit_system'] = 1
         topics['weather']['unit_system'] = 1
 
-        site_dict = copy.deepcopy(config_dict['StdRESTful']['MQTT'])
+        site_dict = copy.deepcopy(config_dict['StdRESTful']['MQTTPublish'])
         site_config = configobj.ConfigObj(site_dict)
 
         site_dict_final = {
@@ -552,15 +552,15 @@ class TestInitialization(unittest.TestCase):
         with mock.patch('weewx.restx') as mock_restx:
             with mock.patch('weewx.manager') as mock_manager:
                 with mock.patch('weewx.manager.open_manager'):
-                    with mock.patch('user.mqtt.MQTT.bind'):
+                    with mock.patch('user.mqtt.MQTTPublish.bind'):
                         with mock.patch('user.mqtt.loginf'):
-                            with mock.patch('user.mqtt.MQTTThread') as mock_MQTTThread:
+                            with mock.patch('user.mqtt.MQTTPublishThread') as mock_MQTTThread:
                                 mock_restx.get_site_dict.return_value = site_config
                                 mock_manager.get_manager_dict_from_config.return_value = manager_dict
 
-                                SUT = MQTT(mock_StdEngine, config)
+                                SUT = MQTTPublish(mock_StdEngine, config)
 
-                                mock_MQTTThread.assert_called_once_with(SUT.archive_queue, **site_config_final)
+                                mock_MQTTThread.assert_called_once_with('MQTTPublish', SUT.archive_queue, **site_config_final)
 
     def test_inputs(self):
         mock_StdEngine = mock.Mock()
@@ -572,7 +572,7 @@ class TestInitialization(unittest.TestCase):
 
         config_dict = {
             'StdRESTful': {
-                'MQTT': {
+                'MQTTPublish': {
                     'server_url': server_url,
                     'inputs': inputs
                 }
@@ -589,7 +589,7 @@ class TestInitialization(unittest.TestCase):
             'weather': self.create_topic(payload_type='individual', inputs=inputs)
             }
 
-        site_dict = copy.deepcopy(config_dict['StdRESTful']['MQTT'])
+        site_dict = copy.deepcopy(config_dict['StdRESTful']['MQTTPublish'])
         site_config = configobj.ConfigObj(site_dict)
 
         site_dict_final = {
@@ -602,15 +602,15 @@ class TestInitialization(unittest.TestCase):
         with mock.patch('weewx.restx') as mock_restx:
             with mock.patch('weewx.manager') as mock_manager:
                 with mock.patch('weewx.manager.open_manager'):
-                    with mock.patch('user.mqtt.MQTT.bind'):
+                    with mock.patch('user.mqtt.MQTTPublish.bind'):
                         with mock.patch('user.mqtt.loginf'):
-                            with mock.patch('user.mqtt.MQTTThread') as mock_MQTTThread:
+                            with mock.patch('user.mqtt.MQTTPublishThread') as mock_MQTTThread:
                                 mock_restx.get_site_dict.return_value = site_config
                                 mock_manager.get_manager_dict_from_config.return_value = manager_dict
 
-                                SUT = MQTT(mock_StdEngine, config)
+                                SUT = MQTTPublish(mock_StdEngine, config)
 
-                                mock_MQTTThread.assert_called_once_with(SUT.archive_queue, **site_config_final)
+                                mock_MQTTThread.assert_called_once_with('MQTTPublish', SUT.archive_queue, **site_config_final)
 
     def test_topics_minimum_configuration(self):
         mock_StdEngine = mock.Mock()
@@ -619,7 +619,7 @@ class TestInitialization(unittest.TestCase):
 
         config_dict = {
             'StdRESTful': {
-                'MQTT': {
+                'MQTTPublish': {
                     'server_url': server_url,
                     'topics': {
                         topic: {}
@@ -637,7 +637,7 @@ class TestInitialization(unittest.TestCase):
             topic: self.create_topic()
             }
 
-        site_dict = copy.deepcopy(config_dict['StdRESTful']['MQTT'])
+        site_dict = copy.deepcopy(config_dict['StdRESTful']['MQTTPublish'])
         site_config = configobj.ConfigObj(site_dict)
 
         site_dict_final = {
@@ -650,15 +650,15 @@ class TestInitialization(unittest.TestCase):
         with mock.patch('weewx.restx') as mock_restx:
             with mock.patch('weewx.manager') as mock_manager:
                 with mock.patch('weewx.manager.open_manager'):
-                    with mock.patch('user.mqtt.MQTT.bind'):
+                    with mock.patch('user.mqtt.MQTTPublish.bind'):
                         with mock.patch('user.mqtt.loginf'):
-                            with mock.patch('user.mqtt.MQTTThread') as mock_MQTTThread:
+                            with mock.patch('user.mqtt.MQTTPublishThread') as mock_MQTTThread:
                                 mock_restx.get_site_dict.return_value = site_config
                                 mock_manager.get_manager_dict_from_config.return_value = manager_dict
 
-                                SUT = MQTT(mock_StdEngine, config)
+                                SUT = MQTTPublish(mock_StdEngine, config)
 
-                                mock_MQTTThread.assert_called_once_with(SUT.archive_queue, **site_config_final)
+                                mock_MQTTThread.assert_called_once_with('MQTTPublish', SUT.archive_queue, **site_config_final)
 
     def test_topics_binding(self):
         mock_StdEngine = mock.Mock()
@@ -667,7 +667,7 @@ class TestInitialization(unittest.TestCase):
 
         config_dict = {
             'StdRESTful': {
-                'MQTT': {
+                'MQTTPublish': {
                     'server_url': server_url,
                     'topics': {
                         topic: {
@@ -687,7 +687,7 @@ class TestInitialization(unittest.TestCase):
             topic: self.create_topic(binding='archive, loop')
         }
 
-        site_dict = copy.deepcopy(config_dict['StdRESTful']['MQTT'])
+        site_dict = copy.deepcopy(config_dict['StdRESTful']['MQTTPublish'])
         site_config = configobj.ConfigObj(site_dict)
 
         site_dict_final = {
@@ -700,13 +700,13 @@ class TestInitialization(unittest.TestCase):
         with mock.patch('weewx.restx') as mock_restx:
             with mock.patch('weewx.manager') as mock_manager:
                 with mock.patch('weewx.manager.open_manager'):
-                    with mock.patch('user.mqtt.MQTT.bind') as mock_bind:
+                    with mock.patch('user.mqtt.MQTTPublish.bind') as mock_bind:
                         with mock.patch('user.mqtt.loginf'):
-                            with mock.patch('user.mqtt.MQTTThread') as mock_MQTTThread:
+                            with mock.patch('user.mqtt.MQTTPublishThread') as mock_MQTTThread:
                                 mock_restx.get_site_dict.return_value = site_config
                                 mock_manager.get_manager_dict_from_config.return_value = manager_dict
 
-                                SUT = MQTT(mock_StdEngine, config)
+                                SUT = MQTTPublish(mock_StdEngine, config)
 
                                 call_args_list = mock_bind.call_args_list
                                 self.assertEqual(len(call_args_list), 2)
@@ -715,7 +715,7 @@ class TestInitialization(unittest.TestCase):
                                 self.assertEqual(call_args_list[1].args[0], NEW_LOOP_PACKET)
                                 self.assertEqual(call_args_list[1].args[1], SUT.new_loop_packet)
 
-                                mock_MQTTThread.assert_called_once_with(SUT.archive_queue, **site_config_final)
+                                mock_MQTTThread.assert_called_once_with('MQTTPublish', SUT.archive_queue, **site_config_final)
 
     def test_topics_type_individual(self):
         mock_StdEngine = mock.Mock()
@@ -724,7 +724,7 @@ class TestInitialization(unittest.TestCase):
 
         config_dict = {
             'StdRESTful': {
-                'MQTT': {
+                'MQTTPublish': {
                     'server_url': server_url,
                     'topics': {
                         topic: {
@@ -744,7 +744,7 @@ class TestInitialization(unittest.TestCase):
             topic: self.create_topic(payload_type='individual')
         }
 
-        site_dict = copy.deepcopy(config_dict['StdRESTful']['MQTT'])
+        site_dict = copy.deepcopy(config_dict['StdRESTful']['MQTTPublish'])
         site_config = configobj.ConfigObj(site_dict)
 
         site_dict_final = {
@@ -757,15 +757,15 @@ class TestInitialization(unittest.TestCase):
         with mock.patch('weewx.restx') as mock_restx:
             with mock.patch('weewx.manager') as mock_manager:
                 with mock.patch('weewx.manager.open_manager'):
-                    with mock.patch('user.mqtt.MQTT.bind'):
+                    with mock.patch('user.mqtt.MQTTPublish.bind'):
                         with mock.patch('user.mqtt.loginf'):
-                            with mock.patch('user.mqtt.MQTTThread') as mock_MQTTThread:
+                            with mock.patch('user.mqtt.MQTTPublishThread') as mock_MQTTThread:
                                 mock_restx.get_site_dict.return_value = site_config
                                 mock_manager.get_manager_dict_from_config.return_value = manager_dict
 
-                                SUT = MQTT(mock_StdEngine, config)
+                                SUT = MQTTPublish(mock_StdEngine, config)
 
-                                mock_MQTTThread.assert_called_once_with(SUT.archive_queue, **site_config_final)
+                                mock_MQTTThread.assert_called_once_with('MQTTPublish', SUT.archive_queue, **site_config_final)
 
     def test_topicsskip_upload(self):
         mock_StdEngine = mock.Mock()
@@ -774,7 +774,7 @@ class TestInitialization(unittest.TestCase):
 
         config_dict = {
             'StdRESTful': {
-                'MQTT': {
+                'MQTTPublish': {
                     'server_url': server_url,
                     'topics': {
                         topic: {
@@ -794,7 +794,7 @@ class TestInitialization(unittest.TestCase):
             topic: self.create_topic(skip_upload=True)
         }
 
-        site_dict = copy.deepcopy(config_dict['StdRESTful']['MQTT'])
+        site_dict = copy.deepcopy(config_dict['StdRESTful']['MQTTPublish'])
         site_config = configobj.ConfigObj(site_dict)
 
         site_dict_final = {
@@ -807,15 +807,15 @@ class TestInitialization(unittest.TestCase):
         with mock.patch('weewx.restx') as mock_restx:
             with mock.patch('weewx.manager') as mock_manager:
                 with mock.patch('weewx.manager.open_manager'):
-                    with mock.patch('user.mqtt.MQTT.bind'):
+                    with mock.patch('user.mqtt.MQTTPublish.bind'):
                         with mock.patch('user.mqtt.loginf'):
-                            with mock.patch('user.mqtt.MQTTThread') as mock_MQTTThread:
+                            with mock.patch('user.mqtt.MQTTPublishThread') as mock_MQTTThread:
                                 mock_restx.get_site_dict.return_value = site_config
                                 mock_manager.get_manager_dict_from_config.return_value = manager_dict
 
-                                SUT = MQTT(mock_StdEngine, config)
+                                SUT = MQTTPublish(mock_StdEngine, config)
 
-                                mock_MQTTThread.assert_called_once_with(SUT.archive_queue, **site_config_final)
+                                mock_MQTTThread.assert_called_once_with('MQTTPublish', SUT.archive_queue, **site_config_final)
 
     def test_topicsobs_to_upload(self):
         mock_StdEngine = mock.Mock()
@@ -824,7 +824,7 @@ class TestInitialization(unittest.TestCase):
 
         config_dict = {
             'StdRESTful': {
-                'MQTT': {
+                'MQTTPublish': {
                     'server_url': server_url,
                     'topics': {
                         topic: {
@@ -844,7 +844,7 @@ class TestInitialization(unittest.TestCase):
             topic: self.create_topic(upload_all=False)
         }
 
-        site_dict = copy.deepcopy(config_dict['StdRESTful']['MQTT'])
+        site_dict = copy.deepcopy(config_dict['StdRESTful']['MQTTPublish'])
         site_config = configobj.ConfigObj(site_dict)
 
         site_dict_final = {
@@ -857,15 +857,15 @@ class TestInitialization(unittest.TestCase):
         with mock.patch('weewx.restx') as mock_restx:
             with mock.patch('weewx.manager') as mock_manager:
                 with mock.patch('weewx.manager.open_manager'):
-                    with mock.patch('user.mqtt.MQTT.bind'):
+                    with mock.patch('user.mqtt.MQTTPublish.bind'):
                         with mock.patch('user.mqtt.loginf'):
-                            with mock.patch('user.mqtt.MQTTThread') as mock_MQTTThread:
+                            with mock.patch('user.mqtt.MQTTPublishThread') as mock_MQTTThread:
                                 mock_restx.get_site_dict.return_value = site_config
                                 mock_manager.get_manager_dict_from_config.return_value = manager_dict
 
-                                SUT = MQTT(mock_StdEngine, config)
+                                SUT = MQTTPublish(mock_StdEngine, config)
 
-                                mock_MQTTThread.assert_called_once_with(SUT.archive_queue, **site_config_final)
+                                mock_MQTTThread.assert_called_once_with('MQTTPublish', SUT.archive_queue, **site_config_final)
 
     def test_topicsappend_units_label(self):
         mock_StdEngine = mock.Mock()
@@ -874,7 +874,7 @@ class TestInitialization(unittest.TestCase):
 
         config_dict = {
             'StdRESTful': {
-                'MQTT': {
+                'MQTTPublish': {
                     'server_url': server_url,
                     'topics': {
                         topic: {
@@ -894,7 +894,7 @@ class TestInitialization(unittest.TestCase):
             topic: self.create_topic(append_units_label=False)
         }
 
-        site_dict = copy.deepcopy(config_dict['StdRESTful']['MQTT'])
+        site_dict = copy.deepcopy(config_dict['StdRESTful']['MQTTPublish'])
         site_config = configobj.ConfigObj(site_dict)
 
         site_dict_final = {
@@ -907,15 +907,15 @@ class TestInitialization(unittest.TestCase):
         with mock.patch('weewx.restx') as mock_restx:
             with mock.patch('weewx.manager') as mock_manager:
                 with mock.patch('weewx.manager.open_manager'):
-                    with mock.patch('user.mqtt.MQTT.bind'):
+                    with mock.patch('user.mqtt.MQTTPublish.bind'):
                         with mock.patch('user.mqtt.loginf'):
-                            with mock.patch('user.mqtt.MQTTThread') as mock_MQTTThread:
+                            with mock.patch('user.mqtt.MQTTPublishThread') as mock_MQTTThread:
                                 mock_restx.get_site_dict.return_value = site_config
                                 mock_manager.get_manager_dict_from_config.return_value = manager_dict
 
-                                SUT = MQTT(mock_StdEngine, config)
+                                SUT = MQTTPublish(mock_StdEngine, config)
 
-                                mock_MQTTThread.assert_called_once_with(SUT.archive_queue, **site_config_final)
+                                mock_MQTTThread.assert_called_once_with('MQTTPublish', SUT.archive_queue, **site_config_final)
 
     def test_topicsretain(self):
         mock_StdEngine = mock.Mock()
@@ -924,7 +924,7 @@ class TestInitialization(unittest.TestCase):
 
         config_dict = {
             'StdRESTful': {
-                'MQTT': {
+                'MQTTPublish': {
                     'server_url': server_url,
                     'topics': {
                         topic: {
@@ -944,7 +944,7 @@ class TestInitialization(unittest.TestCase):
             topic: self.create_topic(retain=True)
         }
 
-        site_dict = copy.deepcopy(config_dict['StdRESTful']['MQTT'])
+        site_dict = copy.deepcopy(config_dict['StdRESTful']['MQTTPublish'])
         site_config = configobj.ConfigObj(site_dict)
 
         site_dict_final = {
@@ -957,16 +957,16 @@ class TestInitialization(unittest.TestCase):
         with mock.patch('weewx.restx') as mock_restx:
             with mock.patch('weewx.manager') as mock_manager:
                 with mock.patch('weewx.manager.open_manager'):
-                    with mock.patch('user.mqtt.MQTT.bind'):
+                    with mock.patch('user.mqtt.MQTTPublish.bind'):
                         with mock.patch('user.mqtt.loginf'):
-                            with mock.patch('user.mqtt.MQTTThread') as mock_MQTTThread:
+                            with mock.patch('user.mqtt.MQTTPublishThread') as mock_MQTTThread:
                                 mock_restx.get_site_dict.return_value = site_config
                                 mock_manager.get_manager_dict_from_config.return_value = manager_dict
 
-                                SUT = MQTT(mock_StdEngine, config)
+                                SUT = MQTTPublish(mock_StdEngine, config)
 
 
-                                mock_MQTTThread.assert_called_once_with(SUT.archive_queue, **site_config_final)
+                                mock_MQTTThread.assert_called_once_with('MQTTPublish', SUT.archive_queue, **site_config_final)
 
     def test_topicsaugment_record(self):
         mock_StdEngine = mock.Mock()
@@ -975,7 +975,7 @@ class TestInitialization(unittest.TestCase):
 
         config_dict = {
             'StdRESTful': {
-                'MQTT': {
+                'MQTTPublish': {
                     'server_url': server_url,
                     'topics': {
                         topic: {
@@ -991,7 +991,7 @@ class TestInitialization(unittest.TestCase):
             topic: self.create_topic(augment_record=False)
         }
 
-        site_dict = copy.deepcopy(config_dict['StdRESTful']['MQTT'])
+        site_dict = copy.deepcopy(config_dict['StdRESTful']['MQTTPublish'])
         site_config = configobj.ConfigObj(site_dict)
 
         site_dict_final = {
@@ -1003,17 +1003,17 @@ class TestInitialization(unittest.TestCase):
         with mock.patch('weewx.restx') as mock_restx:
             with mock.patch('weewx.manager') as mock_manager:
                 with mock.patch('weewx.manager.open_manager'):
-                    with mock.patch('user.mqtt.MQTT.bind'):
+                    with mock.patch('user.mqtt.MQTTPublish.bind'):
                         with mock.patch('user.mqtt.loginf'):
-                            with mock.patch('user.mqtt.MQTTThread') as mock_MQTTThread:
+                            with mock.patch('user.mqtt.MQTTPublishThread') as mock_MQTTThread:
                                 mock_restx.get_site_dict.return_value = site_config
 
-                                SUT = MQTT(mock_StdEngine, config)
+                                SUT = MQTTPublish(mock_StdEngine, config)
 
                                 mock_manager.get_manager_dict_from_config.assert_not_called()
                                 mock_manager.open_manager.assert_not_called()
 
-                                mock_MQTTThread.assert_called_once_with(SUT.archive_queue, **site_config_final)
+                                mock_MQTTThread.assert_called_once_with('MQTTPublish', SUT.archive_queue, **site_config_final)
 
     def test_topicsqos(self):
         mock_StdEngine = mock.Mock()
@@ -1022,7 +1022,7 @@ class TestInitialization(unittest.TestCase):
 
         config_dict = {
             'StdRESTful': {
-                'MQTT': {
+                'MQTTPublish': {
                     'server_url': server_url,
                     'topics': {
                         topic: {
@@ -1042,7 +1042,7 @@ class TestInitialization(unittest.TestCase):
             topic: self.create_topic(qos=2)
         }
 
-        site_dict = copy.deepcopy(config_dict['StdRESTful']['MQTT'])
+        site_dict = copy.deepcopy(config_dict['StdRESTful']['MQTTPublish'])
         site_config = configobj.ConfigObj(site_dict)
 
         site_dict_final = {
@@ -1055,15 +1055,15 @@ class TestInitialization(unittest.TestCase):
         with mock.patch('weewx.restx') as mock_restx:
             with mock.patch('weewx.manager') as mock_manager:
                 with mock.patch('weewx.manager.open_manager'):
-                    with mock.patch('user.mqtt.MQTT.bind'):
+                    with mock.patch('user.mqtt.MQTTPublish.bind'):
                         with mock.patch('user.mqtt.loginf'):
-                            with mock.patch('user.mqtt.MQTTThread') as mock_MQTTThread:
+                            with mock.patch('user.mqtt.MQTTPublishThread') as mock_MQTTThread:
                                 mock_restx.get_site_dict.return_value = site_config
                                 mock_manager.get_manager_dict_from_config.return_value = manager_dict
 
-                                SUT = MQTT(mock_StdEngine, config)
+                                SUT = MQTTPublish(mock_StdEngine, config)
 
-                                mock_MQTTThread.assert_called_once_with(SUT.archive_queue, **site_config_final)
+                                mock_MQTTThread.assert_called_once_with('MQTTPublish', SUT.archive_queue, **site_config_final)
 
     def test_topicsunit_system(self):
         mock_StdEngine = mock.Mock()
@@ -1072,7 +1072,7 @@ class TestInitialization(unittest.TestCase):
 
         config_dict = {
             'StdRESTful': {
-                'MQTT': {
+                'MQTTPublish': {
                     'server_url': server_url,
                     'topics': {
                         topic: {
@@ -1093,7 +1093,7 @@ class TestInitialization(unittest.TestCase):
         }
         topics[topic]['unit_system'] = 1
 
-        site_dict = copy.deepcopy(config_dict['StdRESTful']['MQTT'])
+        site_dict = copy.deepcopy(config_dict['StdRESTful']['MQTTPublish'])
         site_config = configobj.ConfigObj(site_dict)
 
         site_dict_final = {
@@ -1106,15 +1106,15 @@ class TestInitialization(unittest.TestCase):
         with mock.patch('weewx.restx') as mock_restx:
             with mock.patch('weewx.manager') as mock_manager:
                 with mock.patch('weewx.manager.open_manager'):
-                    with mock.patch('user.mqtt.MQTT.bind'):
+                    with mock.patch('user.mqtt.MQTTPublish.bind'):
                         with mock.patch('user.mqtt.loginf'):
-                            with mock.patch('user.mqtt.MQTTThread') as mock_MQTTThread:
+                            with mock.patch('user.mqtt.MQTTPublishThread') as mock_MQTTThread:
                                 mock_restx.get_site_dict.return_value = site_config
                                 mock_manager.get_manager_dict_from_config.return_value = manager_dict
 
-                                SUT = MQTT(mock_StdEngine, config)
+                                SUT = MQTTPublish(mock_StdEngine, config)
 
-                                mock_MQTTThread.assert_called_once_with(SUT.archive_queue, **site_config_final)
+                                mock_MQTTThread.assert_called_once_with('MQTTPublish', SUT.archive_queue, **site_config_final)
 
     def test_topicsinputs(self):
         mock_StdEngine = mock.Mock()
@@ -1127,7 +1127,7 @@ class TestInitialization(unittest.TestCase):
 
         config_dict = {
             'StdRESTful': {
-                'MQTT': {
+                'MQTTPublish': {
                     'server_url': server_url,
                     'topics': {
                         topic: {
@@ -1147,7 +1147,7 @@ class TestInitialization(unittest.TestCase):
             topic: self.create_topic(inputs=inputs)
         }
 
-        site_dict = copy.deepcopy(config_dict['StdRESTful']['MQTT'])
+        site_dict = copy.deepcopy(config_dict['StdRESTful']['MQTTPublish'])
         site_config = configobj.ConfigObj(site_dict)
 
         site_dict_final = {
@@ -1160,15 +1160,15 @@ class TestInitialization(unittest.TestCase):
         with mock.patch('weewx.restx') as mock_restx:
             with mock.patch('weewx.manager') as mock_manager:
                 with mock.patch('weewx.manager.open_manager'):
-                    with mock.patch('user.mqtt.MQTT.bind'):
+                    with mock.patch('user.mqtt.MQTTPublish.bind'):
                         with mock.patch('user.mqtt.loginf'):
-                            with mock.patch('user.mqtt.MQTTThread') as mock_MQTTThread:
+                            with mock.patch('user.mqtt.MQTTPublishThread') as mock_MQTTThread:
                                 mock_restx.get_site_dict.return_value = site_config
                                 mock_manager.get_manager_dict_from_config.return_value = manager_dict
 
-                                SUT = MQTT(mock_StdEngine, config)
+                                SUT = MQTTPublish(mock_StdEngine, config)
 
-                                mock_MQTTThread.assert_called_once_with(SUT.archive_queue, **site_config_final)
+                                mock_MQTTThread.assert_called_once_with('MQTTPublish', SUT.archive_queue, **site_config_final)
 
 if __name__ == '__main__':
     test_suite = unittest.TestSuite()
