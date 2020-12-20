@@ -179,7 +179,7 @@ except ImportError:
     # pylint: disable=missing-function-docstring
     import syslog
     def logmsg(level, msg):
-        syslog.syslog(level, 'restx: MQTT: %s' % msg)
+        syslog.syslog(level, 'restx: MQTTPublish: %s' % msg)
     def logdbg(msg):
         logmsg(syslog.LOG_DEBUG, msg)
     def loginf(msg):
