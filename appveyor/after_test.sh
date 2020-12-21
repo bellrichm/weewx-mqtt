@@ -27,7 +27,7 @@ sed -i 's/classname="/classname="bin\/user\/tests\/unit./g' nosetests.xml
 if [ "$SONAR_UPLOAD" = "true" ]; then
   sonar-scanner \
     -Dsonar.organization=bellrichm \
-    -Dsonar.projectKey=bellrichm_WeeWX-MQTTSubscribe \
+    -Dsonar.projectKey=bellrichm_weewx-publish \
     -Dsonar.projectVersion=$APPVEYOR_BUILD_VERSION \
     -Dsonar.branch.name=$APPVEYOR_REPO_BRANCH \
     -Dsonar.sources=./bin/user/mqttpublish.py \
