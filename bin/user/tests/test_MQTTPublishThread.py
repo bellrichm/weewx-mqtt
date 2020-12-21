@@ -267,7 +267,7 @@ class TestFilterData(unittest.TestCase):
         }
 
         returned_record = copy.deepcopy(record)
-        returned_record[self.observation2] = str(round(returned_record[self.observation2], 2))
+        returned_record[self.observation2] = '%.2f' % returned_record[self.observation2]
         returned_record[self.observation4] = str(returned_record[self.observation4])
         returned_record['usUnits'] = str(returned_record['usUnits'])
 
@@ -322,7 +322,7 @@ class TestFilterData(unittest.TestCase):
         }
 
         returned_record = {}
-        returned_record[self.observation2] = str(round(record[self.observation2], 2))
+        returned_record[self.observation2] = '%.2f' % record[self.observation2]
 
         returned_templates = copy.deepcopy(inputs_dict)
 
@@ -372,8 +372,8 @@ class TestFilterData(unittest.TestCase):
         }
 
         returned_record = {}
-        returned_record[inputs[self.observation1]['name']] = str(round((record[self.observation1] - 32) * 5/9, 2))
-        returned_record[self.observation2] = str(round(record[self.observation2], 2))
+        returned_record[inputs[self.observation1]['name']] = '%.2f' % ((record[self.observation1] - 32) * 5/9)
+        returned_record[self.observation2] = '%.2f' % record[self.observation2]
 
         returned_templates = copy.deepcopy(inputs_dict)
 
@@ -410,12 +410,11 @@ class TestFilterData(unittest.TestCase):
             'latitude': round(random.uniform(-90, 90), 6),
             'longitude': round(random.uniform(-180, 180), 6),
         }
-
-        position = "%f,%f" % (record['latitude'], record['longitude'])
         returned_record = copy.deepcopy(record)
         returned_record['latitude'] = str(returned_record['latitude'])
         returned_record['longitude'] = str(returned_record['longitude'])
         returned_record['usUnits'] = str(returned_record['usUnits'])
+        position = "%s,%s" % (record['latitude'], record['longitude'])
         returned_record['position'] = str(position)
 
         with mock.patch('weewx.units') as mock_units:
@@ -452,12 +451,12 @@ class TestFilterData(unittest.TestCase):
             'altitude_meter': round(random.uniform(0, 2000), 6)
         }
 
-        position = "%f,%f,%f" % (record['latitude'], record['longitude'], record['altitude_meter'])
         returned_record = copy.deepcopy(record)
         returned_record['latitude'] = str(returned_record['latitude'])
         returned_record['longitude'] = str(returned_record['longitude'])
         returned_record['altitude_meter'] = str(returned_record['altitude_meter'])
         returned_record['usUnits'] = str(returned_record['usUnits'])
+        position = "%s,%s,%s" % (record['latitude'], record['longitude'], record['altitude_meter'])
         returned_record['position'] = str(position)
 
         with mock.patch('weewx.units') as mock_units:
@@ -494,12 +493,12 @@ class TestFilterData(unittest.TestCase):
             'altitude_foot': round(random.uniform(0, 2000), 6)
         }
 
-        position = "%f,%f,%f" % (record['latitude'], record['longitude'], record['altitude_foot'])
         returned_record = copy.deepcopy(record)
         returned_record['latitude'] = str(returned_record['latitude'])
         returned_record['longitude'] = str(returned_record['longitude'])
         returned_record['altitude_foot'] = str(returned_record['altitude_foot'])
         returned_record['usUnits'] = str(returned_record['usUnits'])
+        position = "%s,%s,%s" % (record['latitude'], record['longitude'], record['altitude_foot'])
         returned_record['position'] = str(position)
 
         with mock.patch('weewx.units') as mock_units:
