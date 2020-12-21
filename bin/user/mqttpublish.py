@@ -164,7 +164,7 @@ if weewx.__version__ < "3":
 
 try:
     # weewx4 logging
-    # pylint: disable=missing-function-docstring, unused-import, invalid-name
+    # pylint: disable=unused-import, invalid-name, missing-docstring
     import weeutil.logger
     import logging
     log = logging.getLogger(__name__)
@@ -176,7 +176,7 @@ try:
         log.error(msg)
 except ImportError:
     # old-style weewx logging
-    # pylint: disable=missing-function-docstring
+    # pylint: disable=missing-docstring
     import syslog
     def logmsg(level, msg):
         syslog.syslog(level, 'restx: MQTTPublish: %s' % msg)

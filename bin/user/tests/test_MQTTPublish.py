@@ -1,4 +1,4 @@
-# pylint: disable=missing-docstring, invalid-name, line-too-long, dangerous-default-value, too-many-lines
+# pylint: disable=missing-docstring, invalid-name, line-too-long, dangerous-default-value, too-many-lines, wrong-import-order
 import copy
 import random
 import string
@@ -13,6 +13,7 @@ from weewx import NEW_ARCHIVE_RECORD, NEW_LOOP_PACKET
 from user.mqttpublish import MQTTPublish
 
 def random_string():
+    # pylint: disable=unused-variable
     return ''.join([random.choice(string.ascii_letters + string.digits) for n in range(32)])
 
 class TestInitialization(unittest.TestCase):
