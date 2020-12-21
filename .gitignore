@@ -4,3 +4,8 @@ bin/user/__pycache__
 bin/user/tests/__pycache__
 .coverage
 htmlcov
+cover
+coverage.xml
+nosetests.html
+nosetests.xml
+pylint.txt
