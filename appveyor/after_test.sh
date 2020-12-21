@@ -21,7 +21,7 @@ if [ "$COVERALLS_UPLOAD" = "true" ]; then
 fi
 
 # patch up dirs for sonar
-# sed -i 's/classname="/classname="bin\/user\/tests\/unit./g' nosetests.xml
+sed -i 's/classname="/classname="bin\/user\/tests./g' nosetests.xml
 
 # only upload once
 if [ "$SONAR_UPLOAD" = "true" ]; then
