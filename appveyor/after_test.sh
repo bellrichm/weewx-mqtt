@@ -21,13 +21,13 @@ if [ "$COVERALLS_UPLOAD" = "true" ]; then
 fi
 
 # patch up dirs for sonar
-sed -i 's/classname="/classname="bin\/user\/tests\/unit./g' nosetests.xml
+sed -i 's/classname="/classname="bin\/user\/tests./g' nosetests.xml
 
 # only upload once
 if [ "$SONAR_UPLOAD" = "true" ]; then
   sonar-scanner \
     -Dsonar.organization=bellrichm \
-    -Dsonar.projectKey=bellrichm_WeeWX-MQTTSubscribe \
+    -Dsonar.projectKey=bellrichm_weewx-mqttpublish \
     -Dsonar.projectVersion=$APPVEYOR_BUILD_VERSION \
     -Dsonar.branch.name=$APPVEYOR_REPO_BRANCH \
     -Dsonar.sources=./bin/user/mqttpublish.py \
