@@ -136,14 +136,14 @@ class TestPersistentConnection(unittest.TestCase):
         }
         site_config = configobj.ConfigObj(site_dict)
 
-        exception = ConnectionRefusedError("Connect exception.")
+        exception = socket.error("Connect exception.")
 
         with mock.patch('paho.mqtt.client.Client') as mock_client:
             with mock.patch('user.mqttpublish.time') as mock_time:
                 mock_client.return_value = mock_client
                 mock_client.connect.side_effect = mock.Mock(side_effect=exception)
 
-                with self.assertRaises(ConnectionError) as error:
+                with self.assertRaises(weewx.WeeWxIOError) as error:
                     MQTTPublishThread(None, None, **site_config)
 
                 self.assertEqual(len(error.exception.args), 0)
@@ -165,7 +165,7 @@ class TestPersistentConnection(unittest.TestCase):
         }
         site_config = configobj.ConfigObj(site_dict)
 
-        exception = ConnectionRefusedError("Connect exception.")
+        exception = socket.error("Connect exception.")
         self.connection_tries = 0
 
         with mock.patch('paho.mqtt.client.Client') as mock_client:
@@ -558,7 +558,7 @@ class TestProcessRecord(unittest.TestCase):
 
         record = {}
 
-        exception = ConnectionRefusedError("Connect exception.")
+        exception = socket.error("Connect exception.")
 
         with mock.patch('paho.mqtt.client.Client') as mock_client:
             with mock.patch('user.mqttpublish.time') as mock_time:
@@ -594,7 +594,7 @@ class TestProcessRecord(unittest.TestCase):
 
         record = {}
 
-        exception = ConnectionRefusedError("Connect exception.")
+        exception = socket.error("Connect exception.")
         self.connection_tries = 0
 
         with mock.patch('paho.mqtt.client.Client') as mock_client:
@@ -703,7 +703,7 @@ class TestProcessRecord(unittest.TestCase):
 
         record = {}
 
-        exception = ConnectionRefusedError("Connect exception.")
+        exception = socket.error("Connect exception.")
 
         with mock.patch('paho.mqtt.client.Client') as mock_client:
             with mock.patch('user.mqttpublish.time') as mock_time:
@@ -742,7 +742,7 @@ class TestProcessRecord(unittest.TestCase):
 
         record = {}
 
-        exception = ConnectionRefusedError("Connect exception.")
+        exception = socket.error("Connect exception.")
         self.connection_tries = 0
 
         with mock.patch('paho.mqtt.client.Client') as mock_client:

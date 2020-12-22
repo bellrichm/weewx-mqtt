@@ -137,6 +137,7 @@ except ImportError:
     from urlparse import urlparse
 
 import random
+import socket
 import sys
 import time
 import paho.mqtt.client as mqtt
@@ -571,11 +572,11 @@ class MQTTPublishThread(weewx.restx.RESTThread):
                     self.client = self._connect()
                     self.client.loop_start()
                     break
-                except (ConnectionRefusedError) as exceptiom:
-                    logdbg("Failed connection %d: %s" % (_count+1, exceptiom))
+                except (socket.error, socket.timeout, socket.herror) as exception:
+                    logdbg("Failed connection %d: %s" % (_count+1, exception))
                 time.sleep(self.retry_wait)
             else:
-                raise ConnectionError
+                raise weewx.WeeWxIOError
 
     def format_url(self, record):
         pass
@@ -644,7 +645,7 @@ class MQTTPublishThread(weewx.restx.RESTThread):
                     client = self._connect()
                     client.loop_start()
                     break
-                except (ConnectionRefusedError) as exception:
+                except (socket.error, socket.timeout, socket.herror) as exception:
                     logdbg("Failed connection %d: %s" % (_count+1, exception))
                 time.sleep(self.retry_wait)
             else:
@@ -707,7 +708,6 @@ class MQTTPublishThread(weewx.restx.RESTThread):
                                    qos=self.topics[topic]['qos'])
 
     def _publish_data(self, client, topic, data, qos, retain):
-        import socket
         for _count in range(self.max_tries):
             try:
                 (res, mid) = client.publish(topic, data, # pylint: disable=unused-variable
