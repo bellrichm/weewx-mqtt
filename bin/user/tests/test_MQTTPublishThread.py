@@ -803,7 +803,7 @@ class TestProcessRecord(unittest.TestCase):
 
     def test_publish_recovers(self):
         mock_manager = mock.Mock()
-        max_tries = random.randint(4, 6)
+        max_tries = random.randint(5, 7)
         site_dict = {
             'server_url' : 'mqtt://username:password@localhost:1883/',
             'max_tries': max_tries,
