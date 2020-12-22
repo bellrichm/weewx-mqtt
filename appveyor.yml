@@ -1,7 +1,7 @@
 image:
   - Ubuntu
-  #- Ubuntu1604
-  #- Ubuntu2004
+  - Ubuntu1604
+  - Ubuntu2004
 
 environment:
   # common values
