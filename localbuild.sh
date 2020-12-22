@@ -1,3 +1,12 @@
+#export PYENV_VERSION=2.7.17
+#export PYENV_VERSION=3.5.9
+#export PYENV_VERSION=3.6.9
+if [ "$1" ]
+then
+  export PYENV_VERSION=$1
+fi
+python -V
+
 export BUILDTYPE="LOCAL"
 
 export APPVEYOR_BUILD_VERSION="local"
