@@ -722,8 +722,8 @@ class MQTTPublishThread(weewx.restx.RESTThread):
                     if self.persist_connection:
                         self.client = client
                 else:
-                    raise weewx.restx.FailedPost("Publish failed for %s: %s." % (topic, res))
-            except (socket.error, socket.timeout, socket.herror) as exception:
+                    raise weewx.restx.FailedPost("Publish failed for %s: %s." % (topic, res)) # ToDo - create a unique exception
+            except (socket.error, socket.timeout, socket.herror, weewx.restx.FailedPost) as exception:
                 logdbg("Failed publish attempt %d: %s" % (_count+1, exception))
                 time.sleep(self.retry_wait)
         else:
