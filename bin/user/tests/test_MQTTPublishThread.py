@@ -121,7 +121,7 @@ class TestPersistentConnection(unittest.TestCase):
         return mock.DEFAULT
 
     def test_connection_error(self):
-        max_tries = random.randint(4, 6)
+        max_tries = random.randint(5, 7)
         site_dict = {
             'persist_connection': True,
             'max_tries': max_tries,
@@ -153,7 +153,7 @@ class TestPersistentConnection(unittest.TestCase):
     def test_connection_recovers(self):
         site_dict = {
             'persist_connection': True,
-            'max_tries': random.randint(4, 6),
+            'max_tries': random.randint(5, 7),
             'server_url' : 'mqtt://username:password@localhost:1883/',
             'topics': {
                 'weather/loop': create_topic(),
@@ -183,7 +183,7 @@ class TestPersistentConnection(unittest.TestCase):
     def test_connection_success(self):
         site_dict = {
             'persist_connection': True,
-            'max_tries': random.randint(4, 6),
+            'max_tries': random.randint(5, 7),
             'server_url' : 'mqtt://username:password@localhost:1883/',
             'topics': {
                 'weather/loop': create_topic(),
@@ -542,7 +542,7 @@ class TestProcessRecord(unittest.TestCase):
 
     def test_connection_error(self):
         mock_manager = mock.Mock()
-        max_tries = random.randint(4, 6)
+        max_tries = random.randint(5, 7)
         site_dict = {
             'server_url' : 'mqtt://username:password@localhost:1883/',
             'max_tries': max_tries,
@@ -576,7 +576,7 @@ class TestProcessRecord(unittest.TestCase):
 
     def test_connection_recovers(self):
         mock_manager = mock.Mock()
-        max_tries = random.randint(4, 6)
+        max_tries = random.randint(5, 7)
         site_dict = {
             'server_url' : 'mqtt://username:password@localhost:1883/',
             'max_tries': max_tries,
@@ -616,7 +616,7 @@ class TestProcessRecord(unittest.TestCase):
 
     def test_connection_success(self):
         mock_manager = mock.Mock()
-        max_tries = random.randint(4, 6)
+        max_tries = random.randint(5, 7)
         site_dict = {
             'server_url' : 'mqtt://username:password@localhost:1883/',
             'max_tries': max_tries,
@@ -650,7 +650,7 @@ class TestProcessRecord(unittest.TestCase):
 
     def test_publish_error_unknown(self):
         mock_manager = mock.Mock()
-        max_tries = random.randint(4, 6)
+        max_tries = random.randint(5, 7)
         site_dict = {
             'server_url' : 'mqtt://username:password@localhost:1883/',
             'max_tries': max_tries,
@@ -686,7 +686,7 @@ class TestProcessRecord(unittest.TestCase):
 
     def test_publish_connection_fails(self):
         mock_manager = mock.Mock()
-        max_tries = random.randint(4, 6)
+        max_tries = random.randint(5, 7)
         site_dict = {
             'server_url' : 'mqtt://username:password@localhost:1883/',
             'max_tries': max_tries,
@@ -725,7 +725,7 @@ class TestProcessRecord(unittest.TestCase):
 
     def test_publish_connection_recovers(self):
         mock_manager = mock.Mock()
-        max_tries = random.randint(4, 6)
+        max_tries = random.randint(5, 7)
         site_dict = {
             'server_url' : 'mqtt://username:password@localhost:1883/',
             'max_tries': max_tries,
@@ -765,7 +765,7 @@ class TestProcessRecord(unittest.TestCase):
 
     def test_publish_error(self):
         mock_manager = mock.Mock()
-        max_tries = random.randint(4, 6)
+        max_tries = random.randint(5, 7)
         site_dict = {
             'server_url' : 'mqtt://username:password@localhost:1883/',
             'max_tries': max_tries,
