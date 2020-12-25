@@ -157,7 +157,7 @@ import weewx.restx
 import weewx.units
 from weeutil.weeutil import to_int, to_bool, to_float
 
-VERSION = "0.23-rmb00"
+VERSION = "0.30"
 
 if weewx.__version__ < "3":
     raise weewx.UnsupportedFeature("weewx 3 is required, found %s" %

@@ -10,15 +10,15 @@ def loader():
 class MQTTInstaller(ExtensionInstaller):
     def __init__(self):
         super(MQTTInstaller, self).__init__(
-            version="0.23-rmb00",
+            version="0.30",
             name='mqtt',
-            description='Upload weather data to MQTT server.',
-            author="Matthew Wall",
-            author_email="mwall@users.sourceforge.net",
+            description='Upload weather data to MQTT server. Forked from Matthew Wall\'s work.',
+            author="Rich Bell",
+            author_email="bellrichm@gmail.com",
             restful_services='user.mqtt.MQTT',
             config={
                 'StdRESTful': {
-                    'MQTT': {
+                    'MQTTPublish': {
                         'server_url': 'INSERT_SERVER_URL_HERE'}}},
-            files=[('bin/user', ['bin/user/mqtt.py'])]
+            files=[('bin/user', ['bin/user/mqttpublish.py'])]
             )

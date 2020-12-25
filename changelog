@@ -1,3 +1,10 @@
+0.30
+* First release of forked code
+* Renamed to further highlight divergence and enable coexistence with original.
+* Ability to publish to multiple topics.
+* Option to persist connection.
+* Support key/value payload.
+
 0.23 10may2020
 * fixed unit label for specialized observations (thanks to mbradley)
 
