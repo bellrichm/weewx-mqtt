@@ -381,6 +381,11 @@ class MQTTPublish(weewx.restx.StdRESTbase):
         if 'tls' in site_dict:
             loginf("network encryption/authentication will be attempted")
 
+    def shutDown(self): # need to override parent - pylint: disable=invalid-name
+        """Run when an engine shutdown is requested."""
+        self.archive_thread.disconnect()
+        super(MQTTPublish, self).shutDown()
+
     def new_archive_record(self, event):
         """ Queue up the archive record for publishing in a different thread. """
         self.archive_queue.put(event.record)
@@ -744,6 +749,11 @@ class MQTTPublishThread(weewx.restx.RESTThread):
             client.tls_set(**self.tls_dict)
         client.connect(url.hostname, url.port)
         return client
+
+    def disconnect(self):
+        """ Disconnect from the MQTT broker. """
+        if self.client:
+            self._disconnect(self.client)
 
     @staticmethod
     def _disconnect(client):
